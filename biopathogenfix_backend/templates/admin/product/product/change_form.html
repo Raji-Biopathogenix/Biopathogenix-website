@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    window.VARIANTS_DATA    = {{ variants_json|safe }};
+    window.SELECTED_OPTIONS = {{ selected_json|safe }};
+    window.ALL_VARIANTS_DATA = {{ all_variants_json|safe }};
+  </script>
+{% endblock %}
