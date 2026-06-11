@@ -10,7 +10,7 @@ export default function Logo() {
         width={180}
         height={42}
         priority
-        className="h-12 w-auto"
+        className="h-8 md:h-12 w-auto"
       />
     </Link>
   )

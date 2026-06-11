@@ -359,6 +359,12 @@ export default function ChatWidget() {
   const panelWidth = clamp(width, minWidth, maxWidth);
   const panelHeight = clamp(height, minHeight, maxHeight);
 
+  useEffect(() => {
+    if (isMobile) {
+      setShowQuickPopup(false);
+    }
+  }, [isMobile]);
+
   const panelStyle = useMemo(
     () =>
       ({
