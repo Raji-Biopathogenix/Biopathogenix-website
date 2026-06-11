@@ -34,12 +34,12 @@ export default function HeaderIcons({search_categories,top_searchs}:HeaderIconsP
 
 
   return (
-    <div className="flex items-center gap-7">
+    <div className="flex items-center gap-4 md:gap-7">
 
-      {/* SEARCH */}
+      {/* SEARCH — hidden on mobile */}
       <button
         aria-label="Search"
-        className="header-icon-btn"
+        className="header-icon-btn hidden md:flex"
         onClick={handleSearchModal}
       >
         <SearchIcon />
