@@ -13,7 +13,7 @@ from cart.views import CartViewset,ShippingRateView,TrackShipmentView,CalculateT
 from shipping.views import AddressViewset
 from order.views import CheckoutView,UserOrdersView,AllOrdersView,orderItemsView,orderReturnRequestView,AdminorderReturnRequestView,AdminorderUpdateView,ShippmentOrderItemsView,CreateOutboundShipmentView,InitiateReturnView,DownloadLabelView,CancelOrderView,CancelOrderItemView,RefundOrderView,PrintLabelView
 
-from home.views import HeaderMenuViewset, CareerOpenRoleViewset, CareerApplicationCreateView,LandingPageView
+from home.views import HeaderMenuViewset, CareerOpenRoleViewset, CareerApplicationCreateView,LandingPageView,BlogPostViewset
 
 from api.views import AssayInquiryView, ContactValidationView, CustomTargetRequestView
 from payments.views import create_payment_intent, create_setup_intent, list_payment_methods, save_payment_method
@@ -28,6 +28,7 @@ router.register(r'address',AddressViewset,'address')
 router.register(r'countries',CountryViewset,'countries')
 router.register(r'headermenu',HeaderMenuViewset,'headermenu')
 router.register(r'open-roles',CareerOpenRoleViewset,'open-roles')
+router.register(r'blog-posts',BlogPostViewset,'blog-posts')
 
 
 
@@ -117,7 +118,6 @@ urlpatterns += [
     path("payment-methods/", list_payment_methods, name="payment_methods_list"),
     path("payment-methods/save/", save_payment_method, name="payment_methods_save"),
 ]
-
 
 
 

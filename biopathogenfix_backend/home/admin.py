@@ -4,7 +4,7 @@ from django.contrib import messages
 # Register your models here.
 from django import forms
 from .career_constants import CAREER_DEPARTMENTS, normalize_department
-from .models import HeaderMenus, Category, CareerOpenRole, CareerApplication,Search,LandingPageContext,LandingPageType,LandingPageImage ,DiscountProducts
+from .models import HeaderMenus, Category, CareerOpenRole, CareerApplication,Search,LandingPageContext,LandingPageType,LandingPageImage ,DiscountProducts,BlogPost,BlogPostImage
 
 
 
@@ -140,3 +140,37 @@ class CareerApplicationAdmin(admin.ModelAdmin):
                 "No application status changed. Selected records were already rejected.",
                 level=messages.INFO,
             )
+
+
+class BlogPostImageInline(admin.TabularInline):
+    model = BlogPostImage
+    fk_name = "blog_post"
+    extra = 1
+    fields = ("image", "alt_text", "order", "show_in_gallery")
+    template = "admin/edit_inline/tabular.html"
+
+
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    inlines = [BlogPostImageInline]
+    list_display = ["title", "slug", "published_at", "is_published", "sort_order", "created_at"]
+    list_filter = ["is_published", "published_at"]
+    search_fields = ["title", "slug", "excerpt", "content_html"]
+    prepopulated_fields = {"slug": ("title",)}
+    ordering = ["-published_at", "-created_at"]
+    readonly_fields = ["created_at", "updated_at"]
+    fieldsets = (
+        ("Content", {
+            "fields": ("title", "slug", "excerpt", "content_html"),
+            "description": "Paste trusted HTML here if you want rich formatting, including embedded images.",
+        }),
+        ("Media", {
+            "fields": ("featured_image", "image_alt"),
+        }),
+        ("Publishing", {
+            "fields": ("published_at", "is_published", "sort_order"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+        }),
+    )
