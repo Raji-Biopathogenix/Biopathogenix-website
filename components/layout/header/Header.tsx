@@ -61,8 +61,22 @@ function HeaderSection({ menus,search_categories,top_searchs }: HeaderSectionPro
 
     <div className="navbar_container">
  <nav className=" mr-15 ml-15  navbar" role="navigation" aria-label="Main navigation">
-        {/* Logo */}
-        <Logo />
+        <div className="navbar__start">
+          {/* Hamburger - first child so it sits on the left on mobile */}
+          <button
+            className={`navbar__hamburger ${mobileOpen ? 'navbar__hamburger--open' : ''}`}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          {/* Logo */}
+          <Logo />
+        </div>
 
         {/* Desktop Nav Links */}
         <div className="navbar__links">
@@ -79,28 +93,14 @@ function HeaderSection({ menus,search_categories,top_searchs }: HeaderSectionPro
 
         {/* Right Actions */}
         <div className="navbar__actions">
-        
-
-          
-          <HeaderIcons   search_categories={search_categories} top_searchs={top_searchs} />
-
-          {/* Hamburger */}
-          <button
-            className={`navbar__hamburger ${mobileOpen ? 'navbar__hamburger--open' : ''}`}
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileOpen}
-          >
-            mobile memu icon
-          </button>
+          <HeaderIcons search_categories={search_categories} top_searchs={top_searchs} />
         </div>
-
 
       </nav>
         </div>
 
       {/* Mobile Menu */}
-      <MobileMenu menus={menus} open={mobileOpen} />
+      <MobileMenu menus={menus} open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
 
   </>);
