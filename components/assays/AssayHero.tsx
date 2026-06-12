@@ -41,7 +41,7 @@ export default function AssayHero({ config }: Props) {
               href="#available-assays"
               className="rounded-md bg-white px-6 py-3 text-sm font-bold text-[#0b2e59] transition-colors hover:bg-[#e8f6fb]"
             >
-              Browse Panels
+              Browse Assays
             </Link>
             <Link
               href="/contact"

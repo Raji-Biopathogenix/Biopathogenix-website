@@ -8,9 +8,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Prefetch
-from .models import HeaderMenus, CareerOpenRole,Search,LandingPageType,LandingPageContext,LandingPageImage
+from .models import HeaderMenus, CareerOpenRole,Search,LandingPageType,LandingPageContext,LandingPageImage,BlogPost,BlogPostImage
 from .career_constants import CAREER_DEPARTMENTS, normalize_department
-from .serializers import HeaderMenuHomeSerializer,CareerApplicationCreateSerializer,CareerOpenRoleListSerializer,CareerOpenRoleSerializer,SearchSerializer,LandingPageImageSerializer,LandingPageContextSerializer,LandingPageTypeSerializer
+from .serializers import HeaderMenuHomeSerializer,CareerApplicationCreateSerializer,CareerOpenRoleListSerializer,CareerOpenRoleSerializer,SearchSerializer,LandingPageImageSerializer,LandingPageContextSerializer,LandingPageTypeSerializer,BlogPostSerializer
 from .career_email_service import (
     send_candidate_application_confirmation_email,
     send_internal_career_application_email,
@@ -163,6 +163,60 @@ class CareerApplicationCreateView(APIView):
         )
 
 
+class BlogPostViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = BlogPost.objects.filter(is_published=True)
+    serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        queryset = BlogPost.objects.filter(is_published=True).prefetch_related(
+            Prefetch("images", queryset=BlogPostImage.objects.all().order_by("order", "created_at"))
+        ).order_by("-published_at", "-created_at", "-id")
+        search = (self.request.query_params.get("search") or "").strip()
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(excerpt__icontains=search)
+                | Q(content_html__icontains=search)
+            )
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        try:
+            serialized = self.get_serializer(self.get_queryset(), many=True, context={"request": request}).data
+        except (ProgrammingError, OperationalError):
+            logger.exception("BlogPost table is not ready")
+            serialized = []
+        return Response(
+            {
+                "status": "success",
+                "message": "Data Fetched Successfully",
+                "result": {"data": serialized},
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            post = self.get_object()
+            serialized = self.get_serializer(post, context={"request": request}).data
+        except (ProgrammingError, OperationalError):
+            logger.exception("BlogPost table is not ready")
+            return Response(
+                {"status": "error", "message": "Blog posts table is not initialized."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response(
+            {
+                "status": "success",
+                "message": "Data Fetched Successfully",
+                "result": {"data": serialized},
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 
 
 @api_view(["GET"])
@@ -188,5 +242,3 @@ def LandingPageView(request):
     
 
  
-
-

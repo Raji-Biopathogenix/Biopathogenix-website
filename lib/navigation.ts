@@ -25,8 +25,8 @@ export const NAVIGATION_FALLBACK: NavigationGroup[] = [
     items: [
       {
         id: 11,
-        title: "Biobank Validation Services",
-        url: "/services/biobank-validation-services",
+        title: "Validation Services",
+        url: "/services/validation-services",
         order: 1,
         open_in_new_tab: false,
       },
@@ -55,7 +55,7 @@ export const NAVIGATION_FALLBACK: NavigationGroup[] = [
       {
         id: 21,
         title: "Blog / Learning Center",
-        url: "/learning-center",
+        url: "/resources/blog-learning-center",
         order: 1,
         open_in_new_tab: false,
       },
