@@ -145,9 +145,9 @@ const respiratoryConfig: AssayTypeConfig = {
   apiAssayType: "respiratory",
   label: "Respiratory Assays",
   eyebrow: "BPX qPLEX Respiratory",
-  heroTitle: "Respiratory assay panels for fast multiplex detection",
+  heroTitle: "Respiratory assays for fast multiplex detection",
   heroSubtitle:
-    "Run focused respiratory panels for viral and bacterial targets with product details, target lists, and downloadable support documents in one place.",
+    "Run focused respiratory assays for viral and bacterial targets with product details, target lists, and downloadable support documents in one place.",
   ctaTitle: "Need a different respiratory target?",
   ctaBody:
     "Send our team the target list you need and we can help review available products or discuss a custom assay path.",
@@ -158,7 +158,7 @@ const respiratoryConfig: AssayTypeConfig = {
   bandImage: LAB_IMAGE,
   highlights: ["Multiplex qPCR", "Pathogen target lists", "Product-ready workflows"],
   features: [
-    { title: "Focused panels", description: "Group related targets into practical panels for routine respiratory testing." },
+    { title: "Focused assays", description: "Group related targets for routine respiratory testing." },
     { title: "Clear documentation", description: "Attach target lists, IFUs, SDS files, and supporting PDFs or spreadsheets from admin." },
     { title: "Direct product path", description: "Open each assay product page for ordering, variants, pricing, and product documents." },
   ],
@@ -169,12 +169,12 @@ const urinaryConfig: AssayTypeConfig = {
   apiAssayType: "uti",
   label: "Urinary Assays",
   eyebrow: "BPX qPLEX Urinary",
-  heroTitle: "Urinary tract assay panels for targeted pathogen detection",
+  heroTitle: "Urinary tract assays for targeted pathogen detection",
   heroSubtitle:
     "Browse urinary assay products with target coverage, downloadable target lists, and direct links to product detail pages.",
   ctaTitle: "Need a different urinary target?",
   ctaBody:
-    "Share your target requirements and our team can help match an available panel or start a custom assay discussion.",
+    "Share your target requirements and our team can help match an available product or start a custom assay discussion.",
   whyTitle: "Why labs choose BPX qPLEX urinary assays",
   categorySlug: "uti-assays",
   fallbackCategorySlugs: ["urinary-tract-infections", "urogenital-infections"],
@@ -182,7 +182,7 @@ const urinaryConfig: AssayTypeConfig = {
   bandImage: LAB_IMAGE,
   highlights: ["UTI targets", "Spreadsheet support", "Product landing pages"],
   features: [
-    { title: "Targeted coverage", description: "Keep urinary pathogen panels organized by assay type and product." },
+    { title: "Targeted coverage", description: "Keep urinary pathogen assays organized by assay type and product." },
     { title: "Reusable data", description: "Targets entered once in admin can be reused across landing pages and product views." },
     { title: "Simple review", description: "Open target documents directly as PDF, Word, or Excel files." },
   ],
@@ -193,20 +193,20 @@ const urogenitalConfig: AssayTypeConfig = {
   apiAssayType: "sti",
   label: "Urogenital Assays",
   eyebrow: "BPX qPLEX Urogenital",
-  heroTitle: "Urogenital assay panels with clear product pathways",
+  heroTitle: "Urogenital assays with clear product pathways",
   heroSubtitle:
     "Present urogenital assay products, pathogen targets, and downloadable documents in a dedicated landing page.",
   ctaTitle: "Need a different urogenital target?",
   ctaBody:
-    "Send the target list or panel idea and our assay team can help review available and custom options.",
+    "Send the target list or assay idea and our assay team can help review available and custom options.",
   whyTitle: "Why labs choose BPX qPLEX urogenital assays",
   categorySlug: "urogenital-assays",
   fallbackCategorySlugs: ["urogenital-infections"],
   heroImage: ASSAY_IMAGE,
   bandImage: LAB_IMAGE,
-  highlights: ["Urogenital panels", "Target downloads", "Direct product view"],
+  highlights: ["Urogenital assays", "Target downloads", "Direct product view"],
   features: [
-    { title: "Panel clarity", description: "Separate urogenital products from other assay categories for easier browsing." },
+    { title: "Assay clarity", description: "Separate urogenital products from other assay categories for easier browsing." },
     { title: "Target visibility", description: "Show pathogens in-page and attach target list documents from the backend." },
     { title: "Fast navigation", description: "Move from the panel page to the product page with one action." },
   ],
@@ -217,20 +217,20 @@ const giConfig: AssayTypeConfig = {
   apiAssayType: "gi",
   label: "Gastrointestinal Assays",
   eyebrow: "BPX qPLEX Gastrointestinal",
-  heroTitle: "Gastrointestinal panels for organized pathogen review",
+  heroTitle: "Gastrointestinal assays for organized pathogen review",
   heroSubtitle:
     "Give GI assay products their own page with product links, pathogen targets, and admin-managed target documents.",
   ctaTitle: "Need a different GI target?",
   ctaBody:
-    "If your panel needs a different organism or target list, our team can help review the right next step.",
+    "If your assay needs a different organism or target list, our team can help review the right next step.",
   whyTitle: "Why labs choose BPX qPLEX gastrointestinal assays",
   categorySlug: "gi-assays",
   fallbackCategorySlugs: ["gastrointestinal-infections"],
   heroImage: ASSAY_IMAGE,
   bandImage: LAB_IMAGE,
-  highlights: ["GI panels", "Organized products", "Downloadable targets"],
+  highlights: ["GI assays", "Organized products", "Downloadable targets"],
   features: [
-    { title: "Panel grouping", description: "Keep GI products grouped apart from respiratory, urinary, and wound panels." },
+    { title: "Assay grouping", description: "Keep GI products grouped apart from respiratory, urinary, and wound assays." },
     { title: "Document support", description: "Upload target lists as PDF, Word, Excel, or product documentation files." },
     { title: "Product-first flow", description: "Every card leads directly to the product detail page." },
   ],
@@ -241,18 +241,18 @@ const woundConfig: AssayTypeConfig = {
   apiAssayType: "wound",
   label: "Wound and Nail Assays",
   eyebrow: "BPX qPLEX Wound and Nail",
-  heroTitle: "Wound and nail assay panels with target visibility",
+  heroTitle: "Wound and nail assays with target visibility",
   heroSubtitle:
     "Organize wound and nail assay products with pathogen lists, document downloads, and product detail links.",
   ctaTitle: "Need a different wound or nail target?",
   ctaBody:
-    "Share your panel requirements and we can help identify available products or discuss custom development.",
+    "Share your assay requirements and we can help identify available products or discuss custom development.",
   whyTitle: "Why labs choose BPX qPLEX wound and nail assays",
   categorySlug: "wound-panel-assays",
   fallbackCategorySlugs: ["wound-and-nail-infections"],
   heroImage: ASSAY_IMAGE,
   bandImage: LAB_IMAGE,
-  highlights: ["Wound panels", "Nail targets", "Admin-managed files"],
+  highlights: ["Wound assays", "Nail targets", "Admin-managed files"],
   features: [
     { title: "Clinical grouping", description: "Keep wound and nail products together for easier assay review." },
     { title: "Downloadable lists", description: "Attach target lists and supporting files directly to the product." },
@@ -265,7 +265,7 @@ const otherConfig: AssayTypeConfig = {
   apiAssayType: "other",
   label: "Other Assays",
   eyebrow: "BPX qPLEX Assays",
-  heroTitle: "Specialty assay panels for additional target needs",
+  heroTitle: "Specialty assays for additional target needs",
   heroSubtitle:
     "Use this page for assay products that do not fit the main respiratory, urinary, GI, urogenital, or wound groups.",
   ctaTitle: "Need a specialty target?",
@@ -276,11 +276,11 @@ const otherConfig: AssayTypeConfig = {
   fallbackCategorySlugs: ["other-infection", "othert-infecion", "other-assays"],
   heroImage: ASSAY_IMAGE,
   bandImage: LAB_IMAGE,
-  highlights: ["Specialty panels", "Flexible targets", "Product documents"],
+  highlights: ["Specialty assays", "Flexible targets", "Product documents"],
   features: [
-    { title: "Flexible grouping", description: "Keep specialty assays visible without mixing them into unrelated panels." },
-    { title: "Admin-driven", description: "Add products, targets, and target documents from the backend panel." },
-    { title: "Ready to extend", description: "Add another dedicated panel page by adding one config entry." },
+    { title: "Flexible grouping", description: "Keep specialty assays visible without mixing them into unrelated categories." },
+    { title: "Admin-driven", description: "Add products, targets, and target documents from the backend." },
+    { title: "Ready to extend", description: "Add another dedicated assay page by adding one config entry." },
   ],
 };
 
@@ -302,7 +302,7 @@ const qpcrQcConfig: AssayTypeConfig = {
   highlights: ["External positive controls", "Validated workflows", "Reliable results"],
   features: [
     { title: "External controls", description: "Monitor your entire extraction and PCR workflow with external positive controls." },
-    { title: "Validated performance", description: "Each control is validated against BPX assay panels for consistent results." },
+    { title: "Validated performance", description: "Each control is validated against BPX assays for consistent results." },
     { title: "Easy integration", description: "Drop-in controls compatible with standard qPCR workflows." },
   ],
 };
@@ -348,7 +348,7 @@ const validationSetsConfig: AssayTypeConfig = {
   highlights: ["Validation-ready", "Regulatory support", "Coming soon"],
   features: [
     { title: "Regulatory-grade", description: "Designed to support FDA and CLIA validation requirements." },
-    { title: "Comprehensive panels", description: "Cover a broad range of targets for thorough validation." },
+    { title: "Comprehensive coverage", description: "Cover a broad range of targets for thorough validation." },
     { title: "Documentation included", description: "Includes supporting documents for submission packages." },
   ],
 };
@@ -360,10 +360,10 @@ const inclusivitySetsConfig: AssayTypeConfig = {
   eyebrow: "BPX™ Inclusivity",
   heroTitle: "Inclusivity Sets — Coming Soon",
   heroSubtitle:
-    "Inclusivity panels to verify broad pathogen detection coverage across strain variants. Coming soon.",
+    "Inclusivity sets to verify broad pathogen detection coverage across strain variants. Coming soon.",
   ctaTitle: "Interested in Inclusivity Sets?",
   ctaBody:
-    "Reach out to our team to learn more about upcoming inclusivity panel offerings.",
+    "Reach out to our team to learn more about upcoming inclusivity set offerings.",
   whyTitle: "Why labs will choose BPX™ Inclusivity Sets",
   categorySlug: "inclusivity-sets",
   heroImage: ASSAY_IMAGE,
@@ -371,7 +371,7 @@ const inclusivitySetsConfig: AssayTypeConfig = {
   highlights: ["Strain coverage", "Broad inclusivity", "Coming soon"],
   features: [
     { title: "Broad strain coverage", description: "Verify detection across multiple strains and variants of each target." },
-    { title: "Panel-matched", description: "Matched to BPX assay panels for direct performance verification." },
+    { title: "Assay-matched", description: "Matched to BPX assays for direct performance verification." },
     { title: "Confidence in coverage", description: "Demonstrate inclusivity for clinical and regulatory purposes." },
   ],
 };

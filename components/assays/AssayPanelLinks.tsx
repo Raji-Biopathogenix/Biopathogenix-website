@@ -9,7 +9,6 @@ export default function AssayPanelLinks({ current }: Props) {
   return (
     <section className="border-b border-[#d9e5ee] bg-white px-6 py-5">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
-        <span className="text-sm font-semibold text-[#204765]">Panels</span>
         {ASSAY_PANEL_LINKS.map((panel) => {
           const isActive = panel.routeSlug === current.routeSlug;
           return (

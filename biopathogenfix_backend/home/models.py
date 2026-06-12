@@ -1,6 +1,7 @@
 import logging
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
+from django.utils import timezone
 from django.utils.text import slugify
 from category.models import Category
 from product.models import Product
@@ -199,3 +200,57 @@ class CareerApplication(models.Model):
                     )
 
             transaction.on_commit(_send_rejection_notice)
+
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    excerpt = models.TextField(blank=True)
+    content_html = models.TextField(
+        blank=True,
+        help_text="Trusted HTML only. You can include images, links, and headings here.",
+    )
+    featured_image = models.ImageField(upload_to="blog_posts/", blank=True, null=True)
+    image_alt = models.CharField(max_length=255, blank=True)
+    published_at = models.DateTimeField(default=timezone.now, db_index=True)
+    is_published = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveIntegerField(default=0, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-published_at", "-created_at", "-id"]
+        verbose_name = "Blog Post"
+        verbose_name_plural = "Blog Posts"
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)[:240] or "blog-post"
+            generated_slug = base_slug
+            counter = 2
+            while BlogPost.objects.exclude(pk=self.pk).filter(slug=generated_slug).exists():
+                suffix = f"-{counter}"
+                generated_slug = f"{base_slug[:240 - len(suffix)]}{suffix}"
+                counter += 1
+            self.slug = generated_slug
+        super().save(*args, **kwargs)
+
+
+class BlogPostImage(models.Model):
+    blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="blog_posts/")
+    alt_text = models.CharField(max_length=255, blank=True)
+    order = models.PositiveIntegerField(default=0, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "created_at"]
+        verbose_name = "Blog Post Image"
+        verbose_name_plural = "Blog Post Images"
+
+    def __str__(self):
+        return f"{self.blog_post.title} - {self.order}"
