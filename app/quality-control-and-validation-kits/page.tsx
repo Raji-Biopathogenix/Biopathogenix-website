@@ -1,71 +1,82 @@
-"use client";
+import Link from "next/link";
+import { QC_KIT_CONFIGS, fetchAssayPageData, getProductDetailHref } from "@/lib/assays";
+import type { AssayProduct, AssayTypeConfig } from "@/lib/assays";
 
-export default function QualityControlValidationKits() {
+async function fetchColumnProducts(config: AssayTypeConfig): Promise<AssayProduct[]> {
+  try {
+    const { products } = await fetchAssayPageData(config);
+    return products;
+  } catch {
+    return [];
+  }
+}
+
+const BADGE: Record<string, { label: string; style: string }> = {
+  qpcr_qc: { label: "NEW!", style: "font-semibold" },
+};
+
+export default async function QualityControlValidationKits() {
+  const columns = await Promise.all(
+    QC_KIT_CONFIGS.map(async (config) => ({
+      config,
+      products: await fetchColumnProducts(config),
+    }))
+  );
+
   return (
     <section className="bg-white py-20">
       <div className="max-w-7xl mx-auto px-4">
 
-        {/* Heading */}
         <h1 className="text-4xl md:text-5xl font-bold text-[#0B3C5D] mb-10">
           Quality Control and Validation Kits
         </h1>
 
-        {/* Top Divider */}
         <div className="h-px w-full bg-blue-200 mb-14" />
 
-        {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 text-[#0B3C5D]">
+          {columns.map(({ config, products }) => {
+            const badge = BADGE[config.apiAssayType];
+            const titleWords = config.label.split(" ");
+            const lastWord = titleWords.pop();
 
-          {/* Column 1 */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-medium leading-tight">
-              qPCR Quality
-              <br />
-              Control <span className="font-semibold">NEW!</span>
-            </h3>
+            return (
+              <div key={config.routeSlug} className="space-y-4">
+                <Link
+                  href={`/quality-control-and-validation-kits/${config.routeSlug}`}
+                  className="block hover:opacity-80 transition-opacity"
+                >
+                  <h3 className="text-2xl font-medium leading-tight">
+                    {titleWords.join(" ")}{" "}
+                    {lastWord}{" "}
+                    {badge && (
+                      <span className={badge.style}>{badge.label}</span>
+                    )}
+                  </h3>
+                </Link>
 
-            <a
-              href="#"
-              className="inline-block text-blue-600 underline underline-offset-4 hover:text-blue-700"
-            >
-              BPX™ External Positive Control
-            </a>
-          </div>
-
-          {/* Column 2 */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-medium leading-tight">
-              Semi-Quant
-              <br />
-              Verification
-              <br />
-              Kits <span className="font-light">Coming Soon!</span>
-            </h3>
-          </div>
-
-          {/* Column 3 */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-medium leading-tight">
-              Validation
-              <br />
-              Sets <span className="font-light">Coming Soon!</span>
-            </h3>
-          </div>
-
-          {/* Column 4 */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-medium leading-tight">
-              Inclusivity
-              <br />
-              Sets <span className="font-light">Coming Soon!</span>
-            </h3>
-          </div>
-
+                <div className="space-y-2">
+                  {products.length > 0 ? (
+                    products.map((product) => (
+                      <Link
+                        key={product.id}
+                        href={getProductDetailHref(product)}
+                        className="block text-blue-600 underline underline-offset-4 hover:text-blue-800 text-sm leading-snug"
+                      >
+                        {product.name}
+                      </Link>
+                    ))
+                  ) : (
+                    config.apiAssayType !== "qpcr_qc" && (
+                      <p className="text-sm text-gray-400 italic">Products coming soon</p>
+                    )
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Bottom Divider */}
         <div className="h-px w-full bg-blue-200 mt-16" />
-
       </div>
     </section>
   );

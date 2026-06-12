@@ -298,6 +298,11 @@ class ProductAssayDetail(models.Model):
         ('meningitis', 'Meningitis'),
         ('sepsis', 'Sepsis'),
         ('other', 'Other'),
+        # Quality Control & Validation Kits
+        ('qpcr_qc', 'qPCR Quality Control'),
+        ('semi_quant', 'Semi-Quant Verification Kits'),
+        ('validation_sets', 'Validation Sets'),
+        ('inclusivity_sets', 'Inclusivity Sets'),
     ]
 
     product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='assay_detail')

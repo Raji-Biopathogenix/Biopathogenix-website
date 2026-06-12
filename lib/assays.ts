@@ -10,7 +10,11 @@ export type AssayApiType =
   | "gi"
   | "meningitis"
   | "sepsis"
-  | "other";
+  | "other"
+  | "qpcr_qc"
+  | "semi_quant"
+  | "validation_sets"
+  | "inclusivity_sets";
 
 export interface Pathogen {
   id: number;
@@ -280,6 +284,105 @@ const otherConfig: AssayTypeConfig = {
   ],
 };
 
+const qpcrQcConfig: AssayTypeConfig = {
+  routeSlug: "qpcr-quality-control",
+  apiAssayType: "qpcr_qc",
+  label: "qPCR Quality Control",
+  eyebrow: "BPX™ Quality Control",
+  heroTitle: "qPCR Quality Control products for reliable results",
+  heroSubtitle:
+    "Ensure the integrity of your qPCR workflow with BioPathogenix external positive controls and quality control kits.",
+  ctaTitle: "Need a custom QC solution?",
+  ctaBody:
+    "Contact our team to discuss custom quality control products tailored to your workflow.",
+  whyTitle: "Why labs choose BPX™ qPCR Quality Control",
+  categorySlug: "qpcr-quality-control",
+  heroImage: ASSAY_IMAGE,
+  bandImage: LAB_IMAGE,
+  highlights: ["External positive controls", "Validated workflows", "Reliable results"],
+  features: [
+    { title: "External controls", description: "Monitor your entire extraction and PCR workflow with external positive controls." },
+    { title: "Validated performance", description: "Each control is validated against BPX assay panels for consistent results." },
+    { title: "Easy integration", description: "Drop-in controls compatible with standard qPCR workflows." },
+  ],
+};
+
+const semiQuantConfig: AssayTypeConfig = {
+  routeSlug: "semi-quant-verification",
+  apiAssayType: "semi_quant",
+  label: "Semi-Quant Verification Kits",
+  eyebrow: "BPX™ Verification",
+  heroTitle: "Semi-Quantitative Verification Kits — Coming Soon",
+  heroSubtitle:
+    "Semi-quantitative verification kits for performance monitoring and assay validation. Coming soon.",
+  ctaTitle: "Interested in Semi-Quant Verification?",
+  ctaBody:
+    "Reach out to our team to be notified when Semi-Quant Verification Kits become available.",
+  whyTitle: "Why labs will choose BPX™ Semi-Quant Verification Kits",
+  categorySlug: "semi-quant-verification",
+  heroImage: ASSAY_IMAGE,
+  bandImage: LAB_IMAGE,
+  highlights: ["Semi-quantitative", "Verification-ready", "Coming soon"],
+  features: [
+    { title: "Performance monitoring", description: "Track assay performance over time with semi-quantitative controls." },
+    { title: "Verification support", description: "Support lab verification and validation protocols." },
+    { title: "Standardized results", description: "Compare results across instruments and operators." },
+  ],
+};
+
+const validationSetsConfig: AssayTypeConfig = {
+  routeSlug: "validation-sets",
+  apiAssayType: "validation_sets",
+  label: "Validation Sets",
+  eyebrow: "BPX™ Validation",
+  heroTitle: "Validation Sets — Coming Soon",
+  heroSubtitle:
+    "Comprehensive validation sets for assay development and regulatory submissions. Coming soon.",
+  ctaTitle: "Need Validation Sets now?",
+  ctaBody:
+    "Contact our team to discuss your validation needs and timeline.",
+  whyTitle: "Why labs will choose BPX™ Validation Sets",
+  categorySlug: "validation-sets",
+  heroImage: ASSAY_IMAGE,
+  bandImage: LAB_IMAGE,
+  highlights: ["Validation-ready", "Regulatory support", "Coming soon"],
+  features: [
+    { title: "Regulatory-grade", description: "Designed to support FDA and CLIA validation requirements." },
+    { title: "Comprehensive panels", description: "Cover a broad range of targets for thorough validation." },
+    { title: "Documentation included", description: "Includes supporting documents for submission packages." },
+  ],
+};
+
+const inclusivitySetsConfig: AssayTypeConfig = {
+  routeSlug: "inclusivity-sets",
+  apiAssayType: "inclusivity_sets",
+  label: "Inclusivity Sets",
+  eyebrow: "BPX™ Inclusivity",
+  heroTitle: "Inclusivity Sets — Coming Soon",
+  heroSubtitle:
+    "Inclusivity panels to verify broad pathogen detection coverage across strain variants. Coming soon.",
+  ctaTitle: "Interested in Inclusivity Sets?",
+  ctaBody:
+    "Reach out to our team to learn more about upcoming inclusivity panel offerings.",
+  whyTitle: "Why labs will choose BPX™ Inclusivity Sets",
+  categorySlug: "inclusivity-sets",
+  heroImage: ASSAY_IMAGE,
+  bandImage: LAB_IMAGE,
+  highlights: ["Strain coverage", "Broad inclusivity", "Coming soon"],
+  features: [
+    { title: "Broad strain coverage", description: "Verify detection across multiple strains and variants of each target." },
+    { title: "Panel-matched", description: "Matched to BPX assay panels for direct performance verification." },
+    { title: "Confidence in coverage", description: "Demonstrate inclusivity for clinical and regulatory purposes." },
+  ],
+};
+
+export const QC_KIT_CONFIGS = [
+  qpcrQcConfig,
+  semiQuantConfig,
+  validationSetsConfig,
+  inclusivitySetsConfig,
+];
+
 export const ASSAY_TYPE_CONFIG: Record<string, AssayTypeConfig> = {
   respiratory: respiratoryConfig,
   urinary: urinaryConfig,
@@ -291,6 +394,14 @@ export const ASSAY_TYPE_CONFIG: Record<string, AssayTypeConfig> = {
   wound: woundConfig,
   "wound-and-nail": woundConfig,
   other: otherConfig,
+  "qpcr-quality-control": qpcrQcConfig,
+  qpcr_qc: qpcrQcConfig,
+  "semi-quant-verification": semiQuantConfig,
+  semi_quant: semiQuantConfig,
+  "validation-sets": validationSetsConfig,
+  validation_sets: validationSetsConfig,
+  "inclusivity-sets": inclusivitySetsConfig,
+  inclusivity_sets: inclusivitySetsConfig,
 };
 
 export const ASSAY_PANEL_LINKS = [
