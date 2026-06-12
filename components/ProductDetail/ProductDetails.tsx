@@ -45,6 +45,11 @@ interface ProductDetailData {
   prd_skus?: ProductSkus[];
   prd_variants?: Variant[];
   documents?: ProductDocumentDownload[];
+  assay_detail?: {
+    catalog_number?: string;
+    reaction_format?: string;
+    target_count?: number;
+  } | null;
   trademark?: {
     display?: boolean;
     postion?: "pre" | "post";
@@ -255,13 +260,20 @@ export default function ProductDetails({ prdData }: { prdData: ProductDetailData
       {/* Divider */}
       <div className="h-px bg-gray-200 my-1" />
 
-      {/* SKU / Tag */}
-      {/* <div className="text-sm text-gray-500 space-y-1" style={{ fontFamily: "sans-serif" }}>
-                <p><span className="font-medium text-gray-700">SKU:</span> KMRSAQ1</p>
-                <p><span className="font-medium text-gray-700">Tag:</span>{" "}
-                  <a href="#" className="text-[#1e6fb5] hover:underline">Respiratory Tract Infections</a>
-                </p>
-              </div> */}
+      {/* Catalog Number + SKU */}
+      <div className="text-sm text-gray-500 space-y-1" style={{ fontFamily: "sans-serif" }}>
+        {prdData?.assay_detail?.catalog_number ? (
+          <p>
+            <span className="font-medium text-gray-700">Catalog Number:</span>{" "}
+            {prdData.assay_detail.catalog_number}
+          </p>
+        ) : null}
+        {productSkuobj?.sku_code ? (
+          <p><span className="font-medium text-gray-700">SKU:</span> {productSkuobj.sku_code}</p>
+        ) : prdData?.sku ? (
+          <p><span className="font-medium text-gray-700">SKU:</span> {prdData.sku}</p>
+        ) : null}
+      </div>
 
       {/* Share */}
       <ShareIcons />
