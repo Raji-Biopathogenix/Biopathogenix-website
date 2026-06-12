@@ -57,7 +57,7 @@ class ProductSKUInline(admin.TabularInline):
     model = ProductSKU
     extra = 0
     fields = ['sku_code', 'price', 'stock','low_stock_threshold','weight', 'length', 'width', 'height', 'is_active']
-    readonly_fields = ['sku_code']
+    readonly_fields = []
     can_delete = True
 
     def has_add_permission(self, request, obj=None):
@@ -500,13 +500,23 @@ class ProductImageAdmin(admin.ModelAdmin):
     search_fields = ['product__name', 'alt_text']
 
 
+class ProductSKUOptionInline(admin.TabularInline):
+    model = ProductSKUOption
+    extra = 0
+    readonly_fields = ['variant_option']
+    can_delete = False
+    verbose_name = "Variant Option"
+    verbose_name_plural = "Variant Options (read-only)"
+
+
 @admin.register(ProductSKU)
 class ProductSKUAdmin(admin.ModelAdmin):
+    inlines         = [ProductSKUOptionInline]
     list_display    = ['id','product', 'sku_code', 'price', 'stock','low_stock_threshold', 'is_active', 'created_at']
     list_filter     = ['is_active', 'created_at']
     search_fields   = ['sku_code', 'product__name']
     list_editable   = ['price', 'stock','low_stock_threshold', 'is_active']
-    readonly_fields = ['sku_code', 'created_at']
+    readonly_fields = ['product', 'created_at']
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('product')

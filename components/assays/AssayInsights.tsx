@@ -29,7 +29,7 @@ export default function AssayInsights({ config }: Props) {
               Use the admin panel to attach pathogen targets and upload PDF, Word, or Excel target lists for each product.
             </p>
             <Link
-              href="/learning-center"
+              href="/resources/blog-learning-center"
               className="inline-block rounded-md bg-[#1c9ac4] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4fb3cf]"
             >
               Learning Center

@@ -24,7 +24,7 @@ const LINK_ENTRIES = [
     path: "/services/assay-development",
   },
   { keywords: ["faq", "faqs", "questions"], label: "FAQs", path: "/resources/faqs" },
-  { keywords: ["learning", "learning center"], label: "Learning Center", path: "/learning-center" },
+  { keywords: ["learning", "learning center"], label: "Learning Center", path: "/resources/blog-learning-center" },
   { keywords: ["account", "login", "my account"], label: "My Account", path: "/my-account" },
 ];
 
