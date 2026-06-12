@@ -1,7 +1,3 @@
-export function createRandomId(prefix = "id"): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+export function createRandomId(): string {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }

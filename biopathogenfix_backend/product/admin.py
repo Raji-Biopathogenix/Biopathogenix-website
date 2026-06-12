@@ -382,12 +382,22 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
         print("obj.has_variant====> ",obj.has_variants)
 
-        # No variants selected → create single default SKU from product 
+        # No variants selected → create single default SKU from product
         if not new_selected_ids or not obj.has_variants:
             print("obj.has_variant====> Entered")
 
-            # Delete any variant-based SKUs first
-            self._delete_all_variant_data(obj)
+            # Only delete SKUs that are variant-based (have sku_options).
+            # Leave the default/manual SKU intact so stock edits are preserved.
+            variant_sku_ids = list(
+                ProductSKUOption.objects.filter(sku__product=obj)
+                .values_list('sku_id', flat=True)
+                .distinct()
+            )
+            if variant_sku_ids:
+                ProductSKUOption.objects.filter(sku_id__in=variant_sku_ids).delete()
+                ProductSKU.objects.filter(id__in=variant_sku_ids).delete()
+            ProductVariantOption.objects.filter(product=obj).delete()
+
             # Create default SKU only if none exists
             if not ProductSKU.objects.filter(product=obj).exists():
                 ProductSKU.objects.create(

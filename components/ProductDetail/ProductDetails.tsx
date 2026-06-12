@@ -177,7 +177,9 @@ export default function ProductDetails({ prdData }: { prdData: ProductDetailData
           ) : prdData?.is_customizable ? (
             user ? "$" + effectivePrice.toFixed(2) : "Login for Custom Pricing"
           ) : prdData?.has_variants ? (
-            "$" + (prices?.min_price).toFixed(2) + " - " + "$" + (prices?.max_price).toFixed(2)
+            prices?.min_price === prices?.max_price
+              ? "$" + (prices?.min_price).toFixed(2)
+              : "$" + (prices?.min_price).toFixed(2) + " - " + "$" + (prices?.max_price).toFixed(2)
           ) : (
             <div className="flex items-center gap-2">
               <span>${effectivePrice.toFixed(2)}</span>
