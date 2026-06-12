@@ -336,27 +336,36 @@
     if (!window._currentSkuData || !window._currentSkuData.length) return;
 
     window._currentSkuData.forEach((sku, idx) => {
+      const skuCodeEl   = document.querySelector(`.sku-code-input[data-idx="${idx}"]`);
       const priceEl     = document.querySelector(`.sku-price-input[data-idx="${idx}"]`);
       const stockEl     = document.querySelector(`.sku-stock-input[data-idx="${idx}"]`);
       const lowStockEl  = document.querySelector(`.sku-low_stock-input[data-idx="${idx}"]`);
-      const weightEl  = document.querySelector(`.sku-weight-input[data-idx="${idx}"]`);
-      const lengthEl  = document.querySelector(`.sku-length-input[data-idx="${idx}"]`);
-      const widthEl  = document.querySelector(`.sku-width-input[data-idx="${idx}"]`);
-      const heightEl  = document.querySelector(`.sku-height-input[data-idx="${idx}"]`);
+      const weightEl    = document.querySelector(`.sku-weight-input[data-idx="${idx}"]`);
+      const lengthEl    = document.querySelector(`.sku-length-input[data-idx="${idx}"]`);
+      const widthEl     = document.querySelector(`.sku-width-input[data-idx="${idx}"]`);
+      const heightEl    = document.querySelector(`.sku-height-input[data-idx="${idx}"]`);
 
-
+      if (skuCodeEl)  sku.sku_code  = skuCodeEl.value.trim() || sku.sku_code;
       if (priceEl)    sku.price     = priceEl.value || "0.00";
       if (stockEl)    sku.stock     = parseInt(stockEl.value) || 0;
-      if (lowStockEl) sku.low_stock = parseInt(lowStockEl.value) || 0;  
-      if (weightEl) sku.weight = parseInt(weightEl.value) || 0;  
-      if (lengthEl) sku.length = parseInt(lengthEl.value) || 0;  
-      if (widthEl) sku.width = parseInt(widthEl.value) || 0;  
-      if (heightEl) sku.height = parseInt(heightEl.value) || 0;  
-
+      if (lowStockEl) sku.low_stock = parseInt(lowStockEl.value) || 0;
+      if (weightEl)   sku.weight    = parseFloat(weightEl.value) || 0;
+      if (lengthEl)   sku.length    = parseFloat(lengthEl.value) || 0;
+      if (widthEl)    sku.width     = parseFloat(widthEl.value)  || 0;
+      if (heightEl)   sku.height    = parseFloat(heightEl.value) || 0;
     });
 
     const hiddenSkus = document.getElementById("sku_combinations");
     if (hiddenSkus) hiddenSkus.value = JSON.stringify(window._currentSkuData);
+  }
+
+  function buildServerSkuMap() {
+    const result = {};
+    (window.EXISTING_SKUS || []).forEach(sku => {
+      const key = sku.option_ids.slice().sort((a, b) => a - b).join(",");
+      result[key] = sku;
+    });
+    return result;
   }
 
   function watchCategoryChange() {
@@ -518,23 +527,25 @@
       return;
     }
 
-    const combinations = cartesian(groups);
-    const existingSkus = collectExistingSkus();
+    const combinations  = cartesian(groups);
+    const existingSkus  = collectExistingSkus();   // keyed by sorted option_ids string
+    const serverSkuMap  = buildServerSkuMap();      // keyed by sorted option_ids string
 
     window._currentSkuData = combinations.map(combo => {
-      const skuCode  = combo.map(opt => opt.value).join("-");
-      const existing = existingSkus[skuCode] || {};
+      const optionIds = combo.map(opt => opt.id).sort((a, b) => a - b);
+      const optionKey = optionIds.join(",");
+      const autoCode  = combo.map(opt => opt.value).join("-");
+      const existing  = existingSkus[optionKey] || serverSkuMap[optionKey] || {};
       return {
-        sku_code  : skuCode,
+        sku_code  : existing.sku_code  !== undefined ? existing.sku_code  : autoCode,
         option_ids: combo.map(opt => opt.id),
         price     : existing.price     !== undefined ? existing.price     : "0.00",
         stock     : existing.stock     !== undefined ? existing.stock     : 0,
         low_stock : existing.low_stock !== undefined ? existing.low_stock : 0,
-        weight    : existing.weight !== undefined ? existing.weight : 0,
-        length    : existing.length !== undefined ? existing.length : 0,
-        width    : existing.width !== undefined ? existing.width : 0,
-        height    : existing.height !== undefined ? existing.height : 0,
-
+        weight    : existing.weight    !== undefined ? existing.weight    : 0,
+        length    : existing.length    !== undefined ? existing.length    : 0,
+        width     : existing.width     !== undefined ? existing.width     : 0,
+        height    : existing.height    !== undefined ? existing.height    : 0,
       };
     });
 
@@ -543,7 +554,10 @@
     if (previewBody) {
       previewBody.innerHTML = window._currentSkuData.map((sku, idx) => `
         <tr>
-          <td style="padding:8px; border:1px solid #ddd; font-weight:500;">${sku.sku_code}</td>
+          <td style="padding:8px; border:1px solid #ddd;">
+            <input type="text" class="sku-code-input" data-idx="${idx}" value="${sku.sku_code}"
+              style="width:200px; padding:5px; border:1px solid #ccc; border-radius:4px; font-weight:500; font-size:13px;">
+          </td>
           <td style="padding:8px; border:1px solid #ddd;">
             <input type="number" step="0.01" min="0"
               class="sku-price-input" data-idx="${idx}" value="${sku.price}"
@@ -588,27 +602,31 @@
   }
 
   function collectExistingSkus() {
-    const result = {};
+    const result  = {};
+    const skuData = window._currentSkuData;
+    if (!skuData) return result;
+
     document.querySelectorAll(".sku-price-input").forEach(priceEl => {
       const idx        = parseInt(priceEl.dataset.idx);
+      const skuCodeEl  = document.querySelector(`.sku-code-input[data-idx="${idx}"]`);
       const stockEl    = document.querySelector(`.sku-stock-input[data-idx="${idx}"]`);
       const lowStockEl = document.querySelector(`.sku-low_stock-input[data-idx="${idx}"]`);
-      const weightEl = document.querySelector(`.sku-weight-input[data-idx="${idx}"]`);
-      const lengthEl = document.querySelector(`.sku-length-input[data-idx="${idx}"]`);
-      const widthEl = document.querySelector(`.sku-width-input[data-idx="${idx}"]`);
-      const heightEl = document.querySelector(`.sku-height-input[data-idx="${idx}"]`);
+      const weightEl   = document.querySelector(`.sku-weight-input[data-idx="${idx}"]`);
+      const lengthEl   = document.querySelector(`.sku-length-input[data-idx="${idx}"]`);
+      const widthEl    = document.querySelector(`.sku-width-input[data-idx="${idx}"]`);
+      const heightEl   = document.querySelector(`.sku-height-input[data-idx="${idx}"]`);
 
-      const skuData    = window._currentSkuData;
-      if (skuData && skuData[idx]) {
-        result[skuData[idx].sku_code] = {
+      if (skuData[idx]) {
+        const optionKey = skuData[idx].option_ids.slice().sort((a, b) => a - b).join(",");
+        result[optionKey] = {
+          sku_code : skuCodeEl  ? skuCodeEl.value.trim()        : skuData[idx].sku_code,
           price    : priceEl.value || "0.00",
           stock    : stockEl    ? parseInt(stockEl.value)    || 0 : 0,
           low_stock: lowStockEl ? parseInt(lowStockEl.value) || 0 : 0,
-          weight   : weightEl ? parseInt(weightEl.value) || 0 : 0,  
-          length   : lengthEl ? parseInt(lengthEl.value) || 0 : 0,  
-          width   : widthEl ? parseInt(widthEl.value) || 0 : 0,  
-          height   : heightEl ? parseInt(heightEl.value) || 0 : 0,  
-
+          weight   : weightEl   ? parseFloat(weightEl.value) || 0 : 0,
+          length   : lengthEl   ? parseFloat(lengthEl.value) || 0 : 0,
+          width    : widthEl    ? parseFloat(widthEl.value)  || 0 : 0,
+          height   : heightEl   ? parseFloat(heightEl.value) || 0 : 0,
         };
       }
     });
