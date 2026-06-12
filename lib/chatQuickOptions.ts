@@ -7,9 +7,9 @@ export type QuickOption = {
 
 export const QUICK_OPTIONS: QuickOption[] = [
   {
-  key: "rnadna-extraction-kits",
+  key: "madna-extraction-kits",
   label: "Extraction & Sample Prep ",
-  href: "/product/rnadna-extraction-kits",
+  href: "/product/madna-extraction-kits",
   },
 
   {
