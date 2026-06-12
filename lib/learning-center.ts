@@ -12,6 +12,7 @@ export type BlogPost = {
     image_url: string;
     alt_text: string;
     order: number;
+    show_in_gallery: boolean;
   }>;
   image_alt: string;
   published_at: string;

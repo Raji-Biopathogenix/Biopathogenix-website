@@ -1,5 +1,5 @@
 import CatalogDownload from "@/components/home/CatalogDownload";
-import { getBlogPost, getBlogPosts } from "@/lib/learning-center";
+import { getBlogPost } from "@/lib/learning-center";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { BlogPost } from "@/lib/learning-center";
@@ -45,14 +45,10 @@ export default async function BlogLearningCenterPostPage({
     notFound();
   }
 
-  const relatedPosts = (await getBlogPosts())
-    .filter((item) => item.slug !== post.slug)
-    .slice(0, 3);
-
   const heroImage =
     post.featured_image_url ||
     "/images/assay%20landing%20page/Lyophilization-BioPath-Website-Blog.png";
-  const galleryImages = post.images?.length ? post.images : [];
+  const galleryImages = (post.images ?? []).filter((img) => img.show_in_gallery);
 
   return (
     <main className="bg-white">
@@ -123,45 +119,6 @@ export default async function BlogLearningCenterPostPage({
         ) : null}
       </section>
 
-      {/* Related Articles */}
-      {relatedPosts.length > 0 ? (
-        <section className="bg-[#f8fafd] border-t border-gray-100 py-14">
-          <div className="mx-auto max-w-6xl px-6">
-            <h2 className="text-xl font-bold text-[#0b2e59] mb-8">Related Articles</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {relatedPosts.map((item) => {
-                const thumb = item.featured_image_url || item.images?.[0]?.image_url || "";
-                return (
-                  <Link
-                    href={`/resources/blog-learning-center/${item.slug}`}
-                    key={item.id}
-                    className="block rounded-xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={item.image_alt || item.title}
-                        className="w-full h-[160px] object-cover"
-                      />
-                    ) : null}
-                    <div className="p-5">
-                      <p className="text-xs font-medium text-[#6a8597] uppercase tracking-widest mb-2">
-                        {formatPublishedDate(item.published_at)}
-                      </p>
-                      <p className="text-sm font-semibold text-[#0b2e59] leading-snug mb-2">
-                        {item.title}
-                      </p>
-                      <p className="text-sm text-[#5a7689] leading-6 line-clamp-3">
-                        {item.excerpt}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
 
       <CatalogDownload />
     </main>
