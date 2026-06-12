@@ -146,7 +146,7 @@ class BlogPostImageInline(admin.TabularInline):
     model = BlogPostImage
     fk_name = "blog_post"
     extra = 1
-    fields = ("image", "alt_text", "order")
+    fields = ("image", "alt_text", "order", "show_in_gallery")
     template = "admin/edit_inline/tabular.html"
 
 

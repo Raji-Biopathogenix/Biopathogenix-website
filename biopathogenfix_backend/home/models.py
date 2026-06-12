@@ -244,6 +244,7 @@ class BlogPostImage(models.Model):
     image = models.ImageField(upload_to="blog_posts/")
     alt_text = models.CharField(max_length=255, blank=True)
     order = models.PositiveIntegerField(default=0, db_index=True)
+    show_in_gallery = models.BooleanField(default=False, help_text="Check to display this image at the bottom of the blog post.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

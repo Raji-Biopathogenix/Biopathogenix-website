@@ -148,6 +148,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
                     "image_url": image_url,
                     "alt_text": image.alt_text,
                     "order": image.order,
+                    "show_in_gallery": image.show_in_gallery,
                 }
             )
         return serialized_images
