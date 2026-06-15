@@ -52,7 +52,7 @@ type ProductLookupResponse = {
 };
 
 type AssayFormState = {
-  assayType: "custom" | "standard";
+  assayType: "custom" | "standard" | "customer_support" | "validation_service" | "sales_quote";
   title: string;
   subtitle: string;
   initialReason?: string;
@@ -83,6 +83,7 @@ export default function ChatWidget() {
   const [assayForm, setAssayForm] = useState<AssayFormState | null>(null);
   const [showInChatQuickOptions, setShowInChatQuickOptions] = useState(false);
   const [viewport, setViewport] = useState({ width: 1280, height: 800 });
+  const [lastClickedOptionLabel, setLastClickedOptionLabel] = useState<string>("General");
 
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -186,6 +187,7 @@ export default function ChatWidget() {
       return;
     }
 
+    setLastClickedOptionLabel(opt.label.trim());
     router.push(opt.href);
     addMessage({
       id: createRandomId(),
@@ -209,6 +211,18 @@ export default function ChatWidget() {
 
   function looksLikeSupportRequest(text: string) {
     return /(quote|quotes|quotation|bulk(?:\s+price|\s+pricing)?|bulck(?:\s+price|\s+pricing)?|volume\s+pricing|customer\s+support|customer\s+service|support|service|contact\s*form|sales\s+team|assay\s+team|extraction\s+team|talk(?:\s+direct(?:ly)?)?\s+to\s+(?:a\s+)?(?:person|human|agent|representative)|human\s+(?:agent|support)|need\s+assistance|direct\s+person|sales|pricing)/i.test(text);
+  }
+
+  function looksLikeCustomerSupport(text: string) {
+    return /(customer\s+support|customer\s+service|technical\s+support|tech\s+support|i\s+have\s+an?\s+issue|i\s+have\s+a\s+problem|not\s+working|help\s+me|trouble|complaint|report\s+(?:an?\s+)?issue)/i.test(text);
+  }
+
+  function looksLikeValidationService(text: string) {
+    return /(validation\s+service|biobank\s+validation|kit\s+validation|assay\s+validation\s+service|validation\s+request|request\s+validation)/i.test(text);
+  }
+
+  function looksLikeSalesQuote(text: string) {
+    return /(quote|quotes|quotation|get\s+a\s+price|pricing\s+request|bulk\s+order|bulk\s+price|volume\s+pricing|sales\s+inquiry|sales\s+request|place\s+an?\s+order|request\s+(?:a\s+)?quote|need\s+(?:a\s+)?quote)/i.test(text);
   }
 
   function openIntakeForm(intent: ChatIntakeFormIntent, initialReason: string) {
@@ -295,6 +309,54 @@ export default function ChatWidget() {
         return;
       }
 
+      if (looksLikeSalesQuote(text)) {
+        addMessage({
+          id: createRandomId(),
+          role: "assistant",
+          content: "I'll connect you with our sales team. Please fill in your details below and we'll get back to you with pricing.",
+          createdAt: Date.now(),
+        });
+        setAssayForm({
+          assayType: "sales_quote",
+          title: "Sales & Quotes Request",
+          subtitle: "Share your details and our sales team will contact you within 24 hours.",
+          initialReason: text,
+        });
+        return;
+      }
+
+      if (looksLikeCustomerSupport(text)) {
+        addMessage({
+          id: createRandomId(),
+          role: "assistant",
+          content: "I'll connect you with our support team. Please fill in your details below.",
+          createdAt: Date.now(),
+        });
+        setAssayForm({
+          assayType: "customer_support",
+          title: "Customer Support Request",
+          subtitle: "Share your details and our support team will contact you within 24 hours.",
+          initialReason: text,
+        });
+        return;
+      }
+
+      if (looksLikeValidationService(text)) {
+        addMessage({
+          id: createRandomId(),
+          role: "assistant",
+          content: "I'll connect you with our validation services team. Please fill in your details below.",
+          createdAt: Date.now(),
+        });
+        setAssayForm({
+          assayType: "validation_service",
+          title: "Validation Service Request",
+          subtitle: "Share your details and our team will contact you within 24 hours.",
+          initialReason: text,
+        });
+        return;
+      }
+
       if (!looksLikeSupportRequest(text) && looksLikeProductRequest(text)) {
         const lookup = await lookupProductRoute(text);
         if (lookup?.matched && lookup.href) {
@@ -358,12 +420,6 @@ export default function ChatWidget() {
   const minHeight = Math.min(360, maxHeight);
   const panelWidth = clamp(width, minWidth, maxWidth);
   const panelHeight = clamp(height, minHeight, maxHeight);
-
-  useEffect(() => {
-    if (isMobile) {
-      setShowQuickPopup(false);
-    }
-  }, [isMobile]);
 
   const panelStyle = useMemo(
     () =>
@@ -652,10 +708,10 @@ export default function ChatWidget() {
                           createdAt: Date.now(),
                         });
                         setAssayForm({
-                          assayType: "standard",
-                          title: "Standard Assay Support Request",
+                          assayType: "customer_support",
+                          title: `${lastClickedOptionLabel} Support Request`,
                           subtitle: "Share your details and our team will contact you within 24 hours.",
-                          initialReason: "Need assistance with standard assays.",
+                          initialReason: `Need assistance with ${lastClickedOptionLabel}.`,
                           returnStep: "standard_opened",
                         });
                         setFlowStep(null);
@@ -729,12 +785,19 @@ export default function ChatWidget() {
                       }
                     }}
                     onSuccess={() => {
+                      const type = assayForm?.assayType;
+                      const contactEmail =
+                        type === "sales_quote"
+                          ? "order@biopathogenix.com"
+                          : type === "validation_service"
+                          ? "validation@biopathogenix.com"
+                          : "support@biopathogenix.com";
                       setAssayForm(null);
                       addMessage({
                         id: createRandomId(),
                         role: "assistant",
                         content:
-                          "Submission received.\n\nOur team will review your request and provide the relevant information within 24 hours.",
+                          `Submission received.\n\nOur team will review your request and get back to you within 24 hours.\n\nIf urgent, contact us directly:\n📧 ${contactEmail}\n📞 (859) 605-5866`,
                         createdAt: Date.now(),
                       });
                     }}

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/config/env";
 
 type Props = {
-  assayType: "custom" | "standard";
+  assayType: "custom" | "standard" | "customer_support" | "validation_service" | "sales_quote";
   onSuccess: () => void;
   onCancel?: () => void;
   title?: string;
@@ -80,7 +80,13 @@ export default function AssayIntakeForm({
   return (
     <div className="rounded-2xl border border-[#d5e3f2] bg-white p-3 shadow-sm">
       <div className="text-sm font-semibold text-[#21364b]">
-        {title ?? (assayType === "custom" ? "Custom Assay Request" : "Standard Assay Request")}
+        {title ?? (
+          assayType === "custom" ? "Custom Assay Request" :
+          assayType === "customer_support" ? "Customer Support Request" :
+          assayType === "validation_service" ? "Validation Service Request" :
+          assayType === "sales_quote" ? "Sales & Quotes Request" :
+          "Standard Assay Request"
+        )}
       </div>
       <div className="mb-3 text-xs text-[#5a748d]">
         {subtitle ?? "Share your details and our team will contact you within 24 hours."}

@@ -209,13 +209,21 @@ WELCOME_LOGO_URL = os.environ.get("WELCOME_LOGO_URL","http://localhost:3000/imag
 if EMAIL_USE_TLS and EMAIL_USE_SSL:
     EMAIL_USE_SSL = False
 
-GRAPH_TENANT_ID = os.environ.get("GRAPH_TENANT_ID", "")
-GRAPH_CLIENT_ID = os.environ.get("GRAPH_CLIENT_ID", "")
-GRAPH_CLIENT_SECRET = os.environ.get("GRAPH_CLIENT_SECRET", "")
+GRAPH_TENANT_ID = os.environ.get("GRAPH_TENANT_ID") or os.environ.get("MS_TENANT_ID", "")
+GRAPH_CLIENT_ID = os.environ.get("GRAPH_CLIENT_ID") or os.environ.get("MS_CLIENT_ID", "")
+GRAPH_CLIENT_SECRET = os.environ.get("GRAPH_CLIENT_SECRET") or os.environ.get("MS_CLIENT_SECRET", "")
 GRAPH_SCOPE = os.environ.get("GRAPH_SCOPE", "https://graph.microsoft.com/.default")
 GRAPH_API_BASE = os.environ.get("GRAPH_API_BASE", "https://graph.microsoft.com/v1.0")
-GRAPH_SENDER = os.environ.get("GRAPH_SENDER", DEFAULT_FROM_EMAIL)
+GRAPH_SENDER = os.environ.get("GRAPH_SENDER", "")
 GRAPH_ENABLED = all([GRAPH_TENANT_ID, GRAPH_CLIENT_ID, GRAPH_CLIENT_SECRET, GRAPH_SENDER])
+
+# Routed email recipients
+# Support: standard assay, custom assay, customer support, general contact
+SUPPORT_TO_EMAIL = os.environ.get("SUPPORT_TO_EMAIL", "")
+# Order/Sales: sales & quotes requests
+ORDER_TO_EMAIL = os.environ.get("ORDER_TO_EMAIL", "")
+# Validation: validation service requests
+VALIDATION_TO_EMAIL = os.environ.get("VALIDATION_TO_EMAIL", "")
 
 # TaxJar configuration
 TAXJAR_API_KEY = os.environ.get("TAXJAR_API_KEY", "")
@@ -239,9 +247,6 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "false").lower() == "true"
-
-NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
-REVALIDATE_SECRET = os.getenv("REVALIDATE_SECRET", "biopathogenix-revalidate-secret")
 
 from celery.schedules import crontab
  

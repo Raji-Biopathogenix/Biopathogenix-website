@@ -98,8 +98,6 @@ export default function VariantsModal({ showModal, setShowModal, prdData, create
         setShowModal(false)
     }
 
-    console.log("qtyErrorMsg",qtyErrorMsg)
-
     return (<>
         {showModal && (<>
             <div

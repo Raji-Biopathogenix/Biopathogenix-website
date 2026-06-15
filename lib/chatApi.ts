@@ -1,7 +1,7 @@
 import type { ChatMessage } from "@/store/chatStore";
 
 export type ChatIntakeFormIntent = {
-  assayType: "custom" | "standard";
+  assayType: "custom" | "standard" | "customer_support" | "validation_service" | "sales_quote";
   title: string;
   subtitle: string;
   confirmation: string;
