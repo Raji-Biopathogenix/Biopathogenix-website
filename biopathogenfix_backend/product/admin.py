@@ -210,6 +210,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
                 .values_list('variant_option_id', flat=True)
             )
         selected_str = ','.join(str(i) for i in selected_ids)
+        variant_groups_html = self._render_variant_groups_html(selected_ids)
 
         return mark_safe(f"""
         <div id="variant-sku-section" style="width:100%;">
@@ -218,9 +219,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             <input type="hidden" name="sku_combinations"
                    id="sku_combinations" value="">
             <div id="variant-checkboxes">
-                <p style="color:#999; font-size:13px;">
-                    Please select a category above to load variants.
-                </p>
+                {variant_groups_html}
             </div>
             <div id="sku-preview-section" style="margin-top:20px; display:none;">
                 <h3 style="font-size:14px; margin-bottom:8px; color:#333;"> SKU Combinations</h3>
@@ -246,12 +245,63 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     variant_selector.short_description = 'Variant Options'
 
+    def _render_variant_groups_html(self, selected_ids):
+        variants = Variant.objects.prefetch_related('options').order_by('order')
+        selected_ids = set(selected_ids or [])
+        sections = []
+
+        for variant in variants:
+            options = list(variant.options.all())
+            if not options:
+                continue
+
+            option_html = []
+            for opt in options:
+                checked = "checked" if opt.id in selected_ids else ""
+                option_html.append(f"""
+                  <label class="option-chip" style="
+                    display:inline-flex; align-items:center; gap:6px;
+                    padding:5px 14px; border-radius:20px; cursor:pointer;
+                    border:2px solid #ccc; background:#fff;
+                    font-size:13px; font-weight:500; user-select:none;
+                    transition:all 0.15s ease;">
+                    <input type="checkbox"
+                      class="variant-option-cb"
+                      data-variant-id="{variant.id}"
+                      data-option-id="{opt.id}"
+                      data-option-value="{opt.value}"
+                      {checked}
+                      style="display:none;">
+                    {opt.value}
+                  </label>
+                """)
+
+            sections.append(f"""
+              <div style="margin-bottom:16px; padding:14px 16px; border:1px solid #e0e0e0; border-radius:6px; background:#fafafa;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+                  <strong style="font-size:13px; color:#333; min-width:120px;">{variant.name}</strong>
+                  <label style="font-size:12px; color:#666; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                    <input type="checkbox" class="select-all-toggle" data-variant-id="{variant.id}" style="margin:0;">
+                    Select All
+                  </label>
+                </div>
+                <div class="options-row" style="display:flex; flex-wrap:wrap; gap:8px;">
+                  {''.join(option_html)}
+                </div>
+              </div>
+            """)
+
+        if not sections:
+            return '<p style="color:#999; font-size:13px;">No variants found.</p>'
+
+        return ''.join(sections)
+
     # add_view: no product yet → pass ALL variants grouped by
     # category so JS can filter client-side when user picks a category
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['all_variants_json']  = self._get_all_variants_json()
-        extra_context['variants_json']      = self._get_all_variants_json()
+        extra_context['variants_json']      = self._get_all_variants_list_json()
         extra_context['selected_json']      = '[]'
         extra_context['existing_skus_json'] = '[]'
         return super().add_view(request, form_url, extra_context)
@@ -267,7 +317,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             Product.objects.filter(pk=object_id)
             .values_list('categories__id', flat=True)
         )
-        extra_context['variants_json'] = self._get_all_variants_json()
+        extra_context['variants_json'] = self._get_all_variants_list_json()
 
         selected_ids = list(
             ProductVariantOption.objects
@@ -310,8 +360,21 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
                 'id': variant.id,
                 'name': variant.name,
                 'options': options
-            })
+                })
         return json.dumps(grouped)
+
+    def _get_all_variants_list_json(self):
+        variants_data = []
+        for variant in Variant.objects.prefetch_related('options').order_by('order'):
+            options = [{'id': opt.id, 'value': opt.value} for opt in variant.options.all()]
+            if not options:
+                continue
+            variants_data.append({
+                'id': variant.id,
+                'name': variant.name,
+                'options': options,
+            })
+        return json.dumps(variants_data)
 
     # Variants filtered by given category ids (for change_view preload)
     def _get_variants_json_by_categories(self, category_ids):
