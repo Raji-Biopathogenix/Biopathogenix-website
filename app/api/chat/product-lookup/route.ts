@@ -246,13 +246,21 @@ function scoreTabLabel(label: string, query: string) {
   if (!labelNorm || !queryNorm) return 0;
   if (labelNorm === queryNorm) score += 320;
   if (labelNorm.includes(queryNorm)) score += 200;
+  if (labelNorm.startsWith(queryNorm)) score += 80;
 
+  const labelTokens = labelNorm.split(" ");
   const tokenMatches = queryTokens.filter((token) => labelNorm.includes(token)).length;
   score += tokenMatches * 24;
 
   if (queryTokens.length > 1 && tokenMatches === queryTokens.length) {
     score += 120;
   }
+
+  // bonus when every query token matches the start of a label token (e.g. "valid" → "validation")
+  const prefixMatches = queryTokens.filter((token) =>
+    labelTokens.some((lt) => lt.startsWith(token))
+  ).length;
+  if (prefixMatches === queryTokens.length) score += 60;
 
   return score;
 }
