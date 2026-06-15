@@ -7,8 +7,8 @@ export async function generateStaticParams() {
   try {
     const res = await fetch(`${API_BASE_URL}/v1/product-slugs/`, { cache: 'no-store' });
     if (!res.ok) return [];
-    const slugs: string[] = await res.json();
-    return slugs.map(slug => ({ slug }));
+    const products: { slug: string; category: string | null; sub_category: string | null }[] = await res.json();
+    return products.map(p => ({ slug: p.slug }));
   } catch {
     return [];
   }

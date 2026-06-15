@@ -1,5 +1,4 @@
 "use client";
-import { useState, useEffect } from "react";
 import { LandingPageType } from "@/types/header";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -20,20 +19,36 @@ export default function AboutSection({result}:AboutSectionprops) {
       <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
         <div className="w-full md:w-1/2 flex-shrink-0 flex justify-center">
-          <div className="relative h-[480px] w-[640px]">
+          {/* Mobile layout */}
+          <div className="flex md:hidden w-full gap-3">
+            {result?.images?.[1]?.image && (
+              <img
+                src={result?.images?.[1]?.image}
+                alt="Scientist with microscope"
+                className="w-1/2 h-[220px] object-cover rounded-2xl"
+              />
+            )}
+            {result?.images?.[0]?.image && (
+              <img
+                src={result?.images?.[0]?.image}
+                alt="Female scientist"
+                className="w-1/2 h-[220px] object-cover rounded-2xl"
+              />
+            )}
+          </div>
 
-          {  result?.images?.[2]?.image && <img
+          {/* Desktop layout */}
+          <div className="relative h-[480px] w-[640px] hidden md:block">
+            {result?.images?.[2]?.image && <img
               src={result?.images?.[2]?.image}
               alt="Lab flask"
               className="absolute top-0 left-[170px] w-[130px] h-[200px] object-cover z-[1]"
             />}
-
-           { result?.images?.[1]?.image && <img
+            {result?.images?.[1]?.image && <img
               src={result?.images?.[1]?.image}
               alt="Scientist with microscope"
               className="absolute top-0 left-[300px] w-[320px] h-[460px] object-cover rounded-2xl z-[2]"
             />}
-
             {result?.images?.[0]?.image && <img
               src={result?.images?.[0]?.image}
               alt="Female scientist"

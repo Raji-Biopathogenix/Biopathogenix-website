@@ -6,8 +6,10 @@ export async function generateStaticParams() {
   try {
     const res = await fetch(`${API_BASE_URL}/v1/product-slugs/`, { cache: 'no-store' });
     if (!res.ok) return [];
-    const slugs: string[] = await res.json();
-    return slugs.map(slug => ({ category: '_', sub_category: '_', product: slug }));
+    const products: { slug: string; category: string | null; sub_category: string | null }[] = await res.json();
+    return products
+      .filter(p => p.category && p.sub_category)
+      .map(p => ({ category: p.category!, sub_category: p.sub_category!, product: p.slug }));
   } catch {
     return [];
   }
