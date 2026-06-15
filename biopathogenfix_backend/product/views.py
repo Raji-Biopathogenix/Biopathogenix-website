@@ -636,6 +636,31 @@ class ProductViewset(viewsets.ModelViewSet):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def GetAllProductSlugs(request):
+    products = (
+        Product.objects
+        .filter(is_active=True)
+        .prefetch_related(
+            Prefetch(
+                'categories',
+                queryset=Category.objects.filter(parent__isnull=False, is_active=True).select_related('parent'),
+                to_attr='sub_cats'
+            )
+        )
+    )
+    result = []
+    for p in products:
+        sub_cat = p.sub_cats[0] if p.sub_cats else None
+        result.append({
+            'slug': p.slug,
+            'category': sub_cat.parent.slug if sub_cat and sub_cat.parent else None,
+            'sub_category': sub_cat.slug if sub_cat else None,
+        })
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def GetProductDetialData(request):
 
     product_slug = request.query_params.get('slug')

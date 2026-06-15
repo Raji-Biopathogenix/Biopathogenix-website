@@ -105,8 +105,45 @@ class ProductRelatedInfoInline(admin.TabularInline):
     fields = ['title', 'content', 'sort_order', 'is_active']
 
 
+class ProductAdminForm(forms.ModelForm):
+    trademark_display  = forms.BooleanField(required=False, label="Show trademark")
+    trademark_position = forms.ChoiceField(
+        choices=[('pre', 'Pre (before name)'), ('post', 'Post (after name)')],
+        label="Position",
+    )
+    trademark_text     = forms.CharField(max_length=50, required=False, label="Text (e.g. BPX)")
+    trademark_symbol   = forms.ChoiceField(
+        choices=[('TM', 'TM'), ('R', '®'), ('SM', '℠')],
+        label="Symbol",
+    )
+
+    class Meta:
+        model   = Product
+        exclude = ['trademark']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        tm = {}
+        if self.instance and self.instance.pk:
+            tm = self.instance.trademark or {}
+        self.fields['trademark_display'].initial  = tm.get('display', False)
+        self.fields['trademark_position'].initial = tm.get('postion', 'post')
+        self.fields['trademark_text'].initial     = tm.get('text', 'BPX')
+        self.fields['trademark_symbol'].initial   = tm.get('trademark', 'TM')
+
+    def save(self, commit=True):
+        self.instance.trademark = {
+            'display':   self.cleaned_data.get('trademark_display', False),
+            'postion':   self.cleaned_data.get('trademark_position', 'post'),
+            'text':      self.cleaned_data.get('trademark_text', 'BPX'),
+            'trademark': self.cleaned_data.get('trademark_symbol', 'TM'),
+        }
+        return super().save(commit=commit)
+
+
 @admin.register(Product)
 class ProductAdmin(CommentMixin,admin.ModelAdmin):
+    form = ProductAdminForm
 
     list_display        = ['name', 'sku', 'get_categories', 'price', 'stock_quantity', 'is_active','is_customizable', 'is_featured', 'created_at']
     list_filter         = ['is_active', 'is_featured', 'categories', 'created_at']
@@ -125,7 +162,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Edit page — price/stock hidden (managed via SKUs)
     fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku','trademark')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('compare_price', 'cost_price')}),
@@ -145,7 +182,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Create page — price/stock visible
     add_fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku','trademark')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('price', 'compare_price', 'cost_price')}),
@@ -166,13 +203,18 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     
     def variant_selector(self, obj):
         selected_ids = []
+        selected_category_ids = []
         if obj and obj.pk:
             selected_ids = list(
                 ProductVariantOption.objects
                 .filter(product=obj)
                 .values_list('variant_option_id', flat=True)
             )
+            selected_category_ids = list(
+                obj.categories.values_list('id', flat=True)
+            )
         selected_str = ','.join(str(i) for i in selected_ids)
+        variant_groups_html = self._render_variant_groups_html(selected_ids, selected_category_ids)
 
         return mark_safe(f"""
         <div id="variant-sku-section" style="width:100%;">
@@ -181,9 +223,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             <input type="hidden" name="sku_combinations"
                    id="sku_combinations" value="">
             <div id="variant-checkboxes">
-                <p style="color:#999; font-size:13px;">
-                    Please select a category above to load variants.
-                </p>
+                {variant_groups_html}
             </div>
             <div id="sku-preview-section" style="margin-top:20px; display:none;">
                 <h3 style="font-size:14px; margin-bottom:8px; color:#333;"> SKU Combinations</h3>
@@ -209,12 +249,83 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     variant_selector.short_description = 'Variant Options'
 
+    def _render_variant_groups_html(self, selected_ids, category_ids=None):
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
+        category_ids = list(category_ids or [])
+        if category_ids:
+            option_rows = option_rows.filter(variant__category_id__in=category_ids)
+        else:
+            return '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>'
+
+        selected_ids = set(selected_ids or [])
+        grouped = {}
+
+        for opt in option_rows:
+            variant = opt.variant
+            if variant.id not in grouped:
+                grouped[variant.id] = {
+                    'variant': variant,
+                    'options': [],
+                }
+            grouped[variant.id]['options'].append(opt)
+
+        sections = []
+
+        for group in grouped.values():
+            variant = group['variant']
+            options = group['options']
+
+            option_html = []
+            for opt in options:
+                checked = "checked" if opt.id in selected_ids else ""
+                option_html.append(f"""
+                  <label class="option-chip" style="
+                    display:inline-flex; align-items:center; gap:6px;
+                    padding:5px 14px; border-radius:20px; cursor:pointer;
+                    border:2px solid #ccc; background:#fff;
+                    font-size:13px; font-weight:500; user-select:none;
+                    transition:all 0.15s ease;">
+                    <input type="checkbox"
+                      class="variant-option-cb"
+                      data-variant-id="{variant.id}"
+                      data-option-id="{opt.id}"
+                      data-option-value="{opt.value}"
+                      {checked}
+                      style="display:none;">
+                    {opt.value}
+                  </label>
+                """)
+
+            sections.append(f"""
+              <div style="margin-bottom:16px; padding:14px 16px; border:1px solid #e0e0e0; border-radius:6px; background:#fafafa;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+                  <strong style="font-size:13px; color:#333; min-width:120px;">{variant.name}</strong>
+                  <label style="font-size:12px; color:#666; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                    <input type="checkbox" class="select-all-toggle" data-variant-id="{variant.id}" style="margin:0;">
+                    Select All
+                  </label>
+                </div>
+                <div class="options-row" style="display:flex; flex-wrap:wrap; gap:8px;">
+                  {''.join(option_html)}
+                </div>
+              </div>
+            """)
+
+        if not sections:
+            return '<p style="color:#999; font-size:13px;">No variants found.</p>'
+
+        return ''.join(sections)
+
     # add_view: no product yet → pass ALL variants grouped by
     # category so JS can filter client-side when user picks a category
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['all_variants_json']  = self._get_all_variants_json()
-        extra_context['variants_json']      = '[]'
+        extra_context['variants_json']      = self._get_all_variants_list_json()
         extra_context['selected_json']      = '[]'
         extra_context['existing_skus_json'] = '[]'
         return super().add_view(request, form_url, extra_context)
@@ -230,7 +341,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             Product.objects.filter(pk=object_id)
             .values_list('categories__id', flat=True)
         )
-        extra_context['variants_json'] = self._get_variants_json_by_categories(category_ids)
+        extra_context['variants_json'] = self._get_all_variants_list_json()
 
         selected_ids = list(
             ProductVariantOption.objects
@@ -261,20 +372,43 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     # All variants grouped by category_id → for JS filtering
     def _get_all_variants_json(self):
         grouped = {}
-        for variant in Variant.objects.prefetch_related('options').order_by('order'):
-            options = [{'id': opt.id, 'value': opt.value} for opt in variant.options.all()]
-            if not options:
-                continue
-            # key: category id or "null" for global variants
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
+
+        for opt in option_rows:
+            variant = opt.variant
             key = str(variant.category_id) if variant.category_id else 'null'
             if key not in grouped:
                 grouped[key] = []
-            grouped[key].append({
-                'id': variant.id,
-                'name': variant.name,
-                'options': options
-            })
+            if not grouped[key] or grouped[key][-1]['id'] != variant.id:
+                grouped[key].append({
+                    'id': variant.id,
+                    'name': variant.name,
+                    'options': [],
+                })
+            grouped[key][-1]['options'].append({'id': opt.id, 'value': opt.value})
         return json.dumps(grouped)
+
+    def _get_all_variants_list_json(self):
+        variants_data = []
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
+        for opt in option_rows:
+            variant = opt.variant
+            if not variants_data or variants_data[-1]['id'] != variant.id:
+                variants_data.append({
+                    'id': variant.id,
+                    'name': variant.name,
+                    'options': [],
+                })
+            variants_data[-1]['options'].append({'id': opt.id, 'value': opt.value})
+        return json.dumps(variants_data)
 
     # Variants filtered by given category ids (for change_view preload)
     def _get_variants_json_by_categories(self, category_ids):

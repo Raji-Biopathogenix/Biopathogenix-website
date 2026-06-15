@@ -6,7 +6,7 @@ import CategoryWiseProducts from "@/components/category/CategoryWiseProducts";
 async function fetchProductsByCategory(category: string): Promise<CategoryResponse | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/v1/products/get-products-by-category/?category_slug=${category}`, {
-      next: { revalidate: 30 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
     const payload: ProductsByCategoryResponse = await res.json();
