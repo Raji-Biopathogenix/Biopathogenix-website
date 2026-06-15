@@ -246,14 +246,28 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     variant_selector.short_description = 'Variant Options'
 
     def _render_variant_groups_html(self, selected_ids):
-        variants = Variant.objects.prefetch_related('options').order_by('order')
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
         selected_ids = set(selected_ids or [])
+        grouped = {}
+
+        for opt in option_rows:
+            variant = opt.variant
+            if variant.id not in grouped:
+                grouped[variant.id] = {
+                    'variant': variant,
+                    'options': [],
+                }
+            grouped[variant.id]['options'].append(opt)
+
         sections = []
 
-        for variant in variants:
-            options = list(variant.options.all())
-            if not options:
-                continue
+        for group in grouped.values():
+            variant = group['variant']
+            options = group['options']
 
             option_html = []
             for opt in options:
@@ -348,32 +362,42 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     # All variants grouped by category_id → for JS filtering
     def _get_all_variants_json(self):
         grouped = {}
-        for variant in Variant.objects.prefetch_related('options').order_by('order'):
-            options = [{'id': opt.id, 'value': opt.value} for opt in variant.options.all()]
-            if not options:
-                continue
-            # key: category id or "null" for global variants
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
+
+        for opt in option_rows:
+            variant = opt.variant
             key = str(variant.category_id) if variant.category_id else 'null'
             if key not in grouped:
                 grouped[key] = []
-            grouped[key].append({
-                'id': variant.id,
-                'name': variant.name,
-                'options': options
+            if not grouped[key] or grouped[key][-1]['id'] != variant.id:
+                grouped[key].append({
+                    'id': variant.id,
+                    'name': variant.name,
+                    'options': [],
                 })
+            grouped[key][-1]['options'].append({'id': opt.id, 'value': opt.value})
         return json.dumps(grouped)
 
     def _get_all_variants_list_json(self):
         variants_data = []
-        for variant in Variant.objects.prefetch_related('options').order_by('order'):
-            options = [{'id': opt.id, 'value': opt.value} for opt in variant.options.all()]
-            if not options:
-                continue
-            variants_data.append({
-                'id': variant.id,
-                'name': variant.name,
-                'options': options,
-            })
+        option_rows = (
+            VariantOption.objects.select_related('variant')
+            .filter(is_active=True, variant__is_active=True)
+            .order_by('variant__order', 'order', 'id')
+        )
+        for opt in option_rows:
+            variant = opt.variant
+            if not variants_data or variants_data[-1]['id'] != variant.id:
+                variants_data.append({
+                    'id': variant.id,
+                    'name': variant.name,
+                    'options': [],
+                })
+            variants_data[-1]['options'].append({'id': opt.id, 'value': opt.value})
         return json.dumps(variants_data)
 
     # Variants filtered by given category ids (for change_view preload)
