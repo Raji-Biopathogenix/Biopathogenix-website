@@ -12,8 +12,8 @@ from comment.models import Comment
 def trademark_default():
     return {
         "display": False,
-        "postion": 'post',
-        "text": "BPM",
+        "postion": 'pre',
+        "text": "BPX",
         'trademark':'TM'
     }
 
