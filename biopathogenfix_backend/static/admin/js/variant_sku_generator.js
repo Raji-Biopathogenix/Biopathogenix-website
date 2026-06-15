@@ -307,9 +307,10 @@
     const container = document.getElementById("variant-checkboxes");
     if (!container) { setTimeout(init, 100); return; }
 
-    const variantsData    = window.VARIANTS_DATA || [];
-    const selectedOptions = new Set(window.SELECTED_OPTIONS || []);
-    const variantsToRender = Array.isArray(variantsData) ? variantsData : flattenVariants(window.ALL_VARIANTS_DATA || {});
+    const variantsData = readJsonData("variants-data-json", []);
+    const selectedOptions = new Set(readJsonData("selected-options-json", []));
+    const allVariantsData = readJsonData("all-variants-json", {});
+    const variantsToRender = Array.isArray(variantsData) ? variantsData : flattenVariants(allVariantsData);
 
     if (variantsToRender.length) {
       renderVariantCheckboxes(variantsToRender, selectedOptions);
@@ -362,7 +363,7 @@
 
   function buildServerSkuMap() {
     const result = {};
-    (window.EXISTING_SKUS || []).forEach(sku => {
+    readJsonData("existing-skus-json", []).forEach(sku => {
       const key = sku.option_ids.slice().sort((a, b) => a - b).join(",");
       result[key] = sku;
     });
@@ -382,7 +383,7 @@
 
   function onCategoryChange() {
     const checkboxContainer = document.getElementById("variant-checkboxes");
-    const variants = flattenVariants(window.ALL_VARIANTS_DATA || {});
+    const variants = flattenVariants(readJsonData("all-variants-json", {}));
 
     const currentlyChecked = new Set(
       Array.from(document.querySelectorAll(".variant-option-cb:checked"))
@@ -420,6 +421,16 @@
     });
 
     return variants;
+  }
+
+  function readJsonData(elementId, fallback) {
+    const el = document.getElementById(elementId);
+    if (!el) return fallback;
+    try {
+      return JSON.parse(el.textContent || el.innerText || JSON.stringify(fallback));
+    } catch (error) {
+      return fallback;
+    }
   }
 
   function renderVariantCheckboxes(variantsData, selectedOptions) {

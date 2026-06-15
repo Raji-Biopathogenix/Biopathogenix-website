@@ -2,10 +2,8 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <script>
-    window.VARIANTS_DATA    = {{ variants_json|default:"[]"|safe }};
-    window.SELECTED_OPTIONS = {{ selected_json|default:"[]"|safe }};
-    window.ALL_VARIANTS_DATA = {{ all_variants_json|default:"{}"|safe }};
-    window.EXISTING_SKUS    = {{ existing_skus_json|default:"[]"|safe }};
-  </script>
+  <script id="variants-data-json" type="application/json">{{ variants_json|default:"[]"|safe }}</script>
+  <script id="selected-options-json" type="application/json">{{ selected_json|default:"[]"|safe }}</script>
+  <script id="all-variants-json" type="application/json">{{ all_variants_json|default:"{}"|safe }}</script>
+  <script id="existing-skus-json" type="application/json">{{ existing_skus_json|default:"[]"|safe }}</script>
 {% endblock %}
