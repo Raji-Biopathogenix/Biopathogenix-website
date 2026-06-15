@@ -203,14 +203,18 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     
     def variant_selector(self, obj):
         selected_ids = []
+        selected_category_ids = []
         if obj and obj.pk:
             selected_ids = list(
                 ProductVariantOption.objects
                 .filter(product=obj)
                 .values_list('variant_option_id', flat=True)
             )
+            selected_category_ids = list(
+                obj.categories.values_list('id', flat=True)
+            )
         selected_str = ','.join(str(i) for i in selected_ids)
-        variant_groups_html = self._render_variant_groups_html(selected_ids)
+        variant_groups_html = self._render_variant_groups_html(selected_ids, selected_category_ids)
 
         return mark_safe(f"""
         <div id="variant-sku-section" style="width:100%;">
@@ -245,12 +249,18 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     variant_selector.short_description = 'Variant Options'
 
-    def _render_variant_groups_html(self, selected_ids):
+    def _render_variant_groups_html(self, selected_ids, category_ids=None):
         option_rows = (
             VariantOption.objects.select_related('variant')
             .filter(is_active=True, variant__is_active=True)
             .order_by('variant__order', 'order', 'id')
         )
+        category_ids = list(category_ids or [])
+        if category_ids:
+            option_rows = option_rows.filter(variant__category_id__in=category_ids)
+        else:
+            return '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>'
+
         selected_ids = set(selected_ids or [])
         grouped = {}
 

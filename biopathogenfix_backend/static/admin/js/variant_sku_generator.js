@@ -375,12 +375,16 @@
 
   function watchCategoryChange() {
     const interval = setInterval(function () {
-      const selected = document.getElementById("id_categories_to");
-      if (!selected) return;
+      const sources = getCategorySelectElements();
+      if (!sources.length) return;
       clearInterval(interval);
-      selected.addEventListener("change", onCategoryChange);
+      sources.forEach((select) => {
+        select.addEventListener("change", onCategoryChange);
+      });
       const observer = new MutationObserver(onCategoryChange);
-      observer.observe(selected, { childList: true });
+      sources.forEach((select) => {
+        observer.observe(select, { childList: true, subtree: true });
+      });
     }, 100);
   }
 
@@ -404,12 +408,34 @@
   }
 
   function getSelectedCategoryIds() {
-    const select = document.getElementById("id_categories_to");
-    if (!select) return [];
+    const ids = new Set();
 
-    return Array.from(select.options)
-      .filter(option => option.selected && option.value !== "")
-      .map(option => String(option.value));
+    getCategorySelectElements().forEach((select) => {
+      Array.from(select.options).forEach((option) => {
+        if (option.selected && option.value !== "") {
+          ids.add(String(option.value));
+        }
+      });
+    });
+
+    return Array.from(ids);
+  }
+
+  function getCategorySelectElements() {
+    const selectors = [
+      "#id_categories_to",
+      "#id_categories",
+      'select[name="categories"]',
+    ];
+
+    const elements = [];
+    selectors.forEach((selector) => {
+      const el = document.querySelector(selector);
+      if (el && !elements.includes(el)) {
+        elements.push(el);
+      }
+    });
+    return elements;
   }
 
   function filterVariantsByCategories(variants, selectedCategoryIds) {
