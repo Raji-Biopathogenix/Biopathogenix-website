@@ -231,6 +231,24 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             .values_list('variant_option_id', flat=True)
         )
         extra_context['selected_json'] = json.dumps(selected_ids)
+
+        existing_skus = ProductSKU.objects.filter(product_id=object_id).prefetch_related('sku_options')
+        existing_skus_data = []
+        for sku in existing_skus:
+            option_ids = sorted([opt.variant_option_id for opt in sku.sku_options.all()])
+            existing_skus_data.append({
+                'sku_code': sku.sku_code,
+                'option_ids': option_ids,
+                'price': str(sku.price),
+                'stock': sku.stock,
+                'low_stock': sku.low_stock_threshold,
+                'weight': str(sku.weight),
+                'length': str(sku.length),
+                'width': str(sku.width),
+                'height': str(sku.height),
+            })
+        extra_context['existing_skus_json'] = json.dumps(existing_skus_data)
+
         return super().change_view(request, object_id, form_url, extra_context)
 
     # All variants grouped by category_id → for JS filtering
@@ -456,32 +474,40 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
         except (json.JSONDecodeError, ValueError):
             combinations = []
 
-        existing_sku_codes = set(
-            ProductSKU.objects.filter(product=obj).values_list('sku_code', flat=True)
-        )
+        # Build a map of existing SKUs keyed by frozenset of their option_ids
+        existing_skus_qs = ProductSKU.objects.filter(product=obj).prefetch_related('sku_options')
+        existing_sku_by_options = {}
+        for existing_sku in existing_skus_qs:
+            key = frozenset(opt.variant_option_id for opt in existing_sku.sku_options.all())
+            existing_sku_by_options[key] = existing_sku
 
         for combo in combinations:
-            sku_code   = combo.get('sku_code', '')
+            sku_code   = combo.get('sku_code', '').strip()
             option_ids = combo.get('option_ids', [])
-            if not sku_code:
+            if not sku_code or not option_ids:
                 continue
-            if sku_code in existing_sku_codes:
-                # Already exists → skip (preserve existing price/stock)
-                continue
-            # New combination → create
-            sku = ProductSKU.objects.create(
-                product  = obj,
-                sku_code = sku_code,
-                price    = combo.get('price', 0.00),
-                stock    = combo.get('stock', 0),
-                low_stock_threshold = combo.get('low_stock', 0),
-                weight = combo.get('weight', 0),
-                length = combo.get('length', 0),
-                width  = combo.get('width', 0),
-                height = combo.get('height', 0),
-            )
-            for opt_id in option_ids:
-                ProductSKUOption.objects.create(sku=sku, variant_option_id=opt_id)
+            key = frozenset(option_ids)
+            if key in existing_sku_by_options:
+                # Already exists → update sku_code if the user changed it
+                existing = existing_sku_by_options[key]
+                if existing.sku_code != sku_code:
+                    existing.sku_code = sku_code
+                    existing.save(update_fields=['sku_code'])
+            else:
+                # New combination → create
+                sku = ProductSKU.objects.create(
+                    product  = obj,
+                    sku_code = sku_code,
+                    price    = combo.get('price', 0.00),
+                    stock    = combo.get('stock', 0),
+                    low_stock_threshold = combo.get('low_stock', 0),
+                    weight = combo.get('weight', 0),
+                    length = combo.get('length', 0),
+                    width  = combo.get('width', 0),
+                    height = combo.get('height', 0),
+                )
+                for opt_id in option_ids:
+                    ProductSKUOption.objects.create(sku=sku, variant_option_id=opt_id)
 
    
 
