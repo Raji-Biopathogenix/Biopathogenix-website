@@ -118,8 +118,8 @@ class ProductAdminForm(forms.ModelForm):
     )
 
     class Meta:
-        model  = Product
-        fields = '__all__'
+        model   = Product
+        exclude = ['trademark']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -130,8 +130,6 @@ class ProductAdminForm(forms.ModelForm):
         self.fields['trademark_position'].initial = tm.get('postion', 'post')
         self.fields['trademark_text'].initial     = tm.get('text', 'BPX')
         self.fields['trademark_symbol'].initial   = tm.get('trademark', 'TM')
-        if 'trademark' in self.fields:
-            self.fields['trademark'].widget = forms.HiddenInput()
 
     def save(self, commit=True):
         self.instance.trademark = {
@@ -164,7 +162,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Edit page — price/stock hidden (managed via SKUs)
     fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('compare_price', 'cost_price')}),
@@ -184,7 +182,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Create page — price/stock visible
     add_fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('price', 'compare_price', 'cost_price')}),
