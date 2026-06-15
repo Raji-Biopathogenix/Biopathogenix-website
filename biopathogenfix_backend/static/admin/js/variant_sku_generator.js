@@ -429,11 +429,19 @@
   function getSelectedCategoryIds() {
     const ids = new Set();
 
+    // filter_horizontal right panel: ALL options present = selected
+    const toPanel = document.getElementById("id_categories_to");
+    if (toPanel) {
+      Array.from(toPanel.options).forEach((option) => {
+        if (option.value !== "") ids.add(String(option.value));
+      });
+      return Array.from(ids);
+    }
+
+    // fallback for plain <select multiple>
     getCategorySelectElements().forEach((select) => {
       Array.from(select.options).forEach((option) => {
-        if (option.selected && option.value !== "") {
-          ids.add(String(option.value));
-        }
+        if (option.selected && option.value !== "") ids.add(String(option.value));
       });
     });
 

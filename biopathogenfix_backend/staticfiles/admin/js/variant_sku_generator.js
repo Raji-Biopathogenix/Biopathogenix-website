@@ -307,13 +307,25 @@
     const container = document.getElementById("variant-checkboxes");
     if (!container) { setTimeout(init, 100); return; }
 
-    const variantsData    = window.VARIANTS_DATA || [];
-    const selectedOptions = new Set(window.SELECTED_OPTIONS || []);
+    const variantsData = readJsonData("variants-data-json", []);
+    const selectedOptions = new Set(readJsonData("selected-options-json", []));
+    const allVariantsData = readJsonData("all-variants-json", {});
+    const refreshVariants = () => {
+      const selectedCategoryIds = getSelectedCategoryIds();
+      const variantsToRender = filterVariantsByCategories(
+        flattenVariants(allVariantsData),
+        selectedCategoryIds
+      );
 
-    if (variantsData.length) {
-      renderVariantCheckboxes(variantsData, selectedOptions);
-      generateSKUPreview();
-    }
+      if (variantsToRender.length) {
+        renderVariantCheckboxes(variantsToRender, selectedOptions);
+        generateSKUPreview();
+      } else {
+        renderEmptyVariantState(selectedCategoryIds.length);
+      }
+    };
+
+    refreshVariants();
 
     const form = document.querySelector("form");
     if (form) {
@@ -327,7 +339,7 @@
       });
     }
 
-    watchCategoryChange();
+    watchCategoryChange(refreshVariants);
   }
 
   document.addEventListener("DOMContentLoaded", init);
@@ -361,45 +373,44 @@
 
   function buildServerSkuMap() {
     const result = {};
-    (window.EXISTING_SKUS || []).forEach(sku => {
+    readJsonData("existing-skus-json", []).forEach(sku => {
       const key = sku.option_ids.slice().sort((a, b) => a - b).join(",");
       result[key] = sku;
     });
     return result;
   }
 
-  function watchCategoryChange() {
+  function watchCategoryChange(onChange) {
     const interval = setInterval(function () {
-      const selected = document.getElementById("id_categories_to");
-      if (!selected) return;
+      const sources = getCategorySelectElements();
+      if (!sources.length) return;
       clearInterval(interval);
-      selected.addEventListener("change", onCategoryChange);
+      sources.forEach((select) => {
+        select.addEventListener("change", function () {
+          onCategoryChange();
+          onChange();
+        });
+      });
       const observer = new MutationObserver(onCategoryChange);
-      observer.observe(selected, { childList: true });
+      sources.forEach((select) => {
+        observer.observe(select, { childList: true, subtree: true });
+      });
+
+      let lastSignature = "";
+      setInterval(function () {
+        const signature = getSelectedCategoryIds().join(",");
+        if (signature !== lastSignature) {
+          lastSignature = signature;
+          onChange();
+        }
+      }, 250);
     }, 100);
   }
 
   function onCategoryChange() {
-    const selected = document.getElementById("id_categories_to");
-    if (!selected) return;
-    const categoryIds = Array.from(selected.options).map(o => String(o.value));
-    const allVariants = window.ALL_VARIANTS_DATA || {};
     const checkboxContainer = document.getElementById("variant-checkboxes");
-
-    if (!categoryIds.length) {
-      checkboxContainer.innerHTML = '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>';
-      const preview = document.getElementById("sku-preview-section");
-      if (preview) preview.style.display = "none";
-      return;
-    }
-
-    const seen = new Set();
-    const variants = [];
-    categoryIds.forEach(catId => {
-      (allVariants[catId] || []).forEach(v => {
-        if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
-      });
-    });
+    const allVariants = readJsonData("all-variants-json", {});
+    const variants = filterVariantsByCategories(flattenVariants(allVariants), getSelectedCategoryIds());
 
     const currentlyChecked = new Set(
       Array.from(document.querySelectorAll(".variant-option-cb:checked"))
@@ -407,12 +418,112 @@
     );
 
     if (!variants.length) {
-      checkboxContainer.innerHTML = '<p style="color:#999; font-size:13px;">No variants found for selected category.</p>';
+      renderEmptyVariantState(getSelectedCategoryIds().length);
       return;
     }
 
     renderVariantCheckboxes(variants, currentlyChecked);
     generateSKUPreview();
+  }
+
+  function getSelectedCategoryIds() {
+    const ids = new Set();
+
+    // filter_horizontal right panel: ALL options present = selected
+    const toPanel = document.getElementById("id_categories_to");
+    if (toPanel) {
+      Array.from(toPanel.options).forEach((option) => {
+        if (option.value !== "") ids.add(String(option.value));
+      });
+      return Array.from(ids);
+    }
+
+    // fallback for plain <select multiple>
+    getCategorySelectElements().forEach((select) => {
+      Array.from(select.options).forEach((option) => {
+        if (option.selected && option.value !== "") ids.add(String(option.value));
+      });
+    });
+
+    return Array.from(ids);
+  }
+
+  function getCategorySelectElements() {
+    const selectors = [
+      "#id_categories_to",
+      "#id_categories",
+      'select[name="categories"]',
+    ];
+
+    const elements = [];
+    selectors.forEach((selector) => {
+      const el = document.querySelector(selector);
+      if (el && !elements.includes(el)) {
+        elements.push(el);
+      }
+    });
+    return elements;
+  }
+
+  function filterVariantsByCategories(variants, selectedCategoryIds) {
+    if (!selectedCategoryIds.length) return [];
+
+    const categorySet = new Set(selectedCategoryIds.map(String));
+    const descendantMap = readJsonData("category-descendants-json", {});
+    selectedCategoryIds.forEach((categoryId) => {
+      (descendantMap[String(categoryId)] || []).forEach((childId) => {
+        categorySet.add(String(childId));
+      });
+    });
+
+    return variants.filter(variant => {
+      const categoryId = variant.category_id === null || variant.category_id === undefined
+        ? "null"
+        : String(variant.category_id);
+      return categorySet.has(categoryId);
+    });
+  }
+
+  function renderEmptyVariantState(hasSelectedCategories) {
+    const checkboxContainer = document.getElementById("variant-checkboxes");
+    if (!checkboxContainer) return;
+    checkboxContainer.innerHTML = hasSelectedCategories
+      ? '<p style="color:#999; font-size:13px;">No variants found for selected category.</p>'
+      : '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>';
+  }
+
+  function flattenVariants(allVariants) {
+    const seen = new Set();
+    const variants = [];
+
+    (allVariants["null"] || []).forEach((variant) => {
+      if (!seen.has(variant.id)) {
+        seen.add(variant.id);
+        variants.push({ ...variant, category_id: null });
+      }
+    });
+
+    Object.keys(allVariants).forEach((catId) => {
+      if (catId === "null") return;
+      (allVariants[catId] || []).forEach((variant) => {
+        if (!seen.has(variant.id)) {
+          seen.add(variant.id);
+          variants.push({ ...variant, category_id: catId });
+        }
+      });
+    });
+
+    return variants;
+  }
+
+  function readJsonData(elementId, fallback) {
+    const el = document.getElementById(elementId);
+    if (!el) return fallback;
+    try {
+      return JSON.parse(el.textContent || el.innerText || JSON.stringify(fallback));
+    } catch (error) {
+      return fallback;
+    }
   }
 
   function renderVariantCheckboxes(variantsData, selectedOptions) {
