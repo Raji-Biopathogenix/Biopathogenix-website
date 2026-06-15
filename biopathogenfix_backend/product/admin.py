@@ -251,7 +251,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['all_variants_json']  = self._get_all_variants_json()
-        extra_context['variants_json']      = '[]'
+        extra_context['variants_json']      = self._get_all_variants_json()
         extra_context['selected_json']      = '[]'
         extra_context['existing_skus_json'] = '[]'
         return super().add_view(request, form_url, extra_context)
@@ -267,7 +267,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             Product.objects.filter(pk=object_id)
             .values_list('categories__id', flat=True)
         )
-        extra_context['variants_json'] = self._get_variants_json_by_categories(category_ids)
+        extra_context['variants_json'] = self._get_all_variants_json()
 
         selected_ids = list(
             ProductVariantOption.objects

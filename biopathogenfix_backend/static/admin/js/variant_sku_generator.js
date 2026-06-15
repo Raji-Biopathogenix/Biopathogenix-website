@@ -380,18 +380,8 @@
   }
 
   function onCategoryChange() {
-    const selected = document.getElementById("id_categories_to");
-    if (!selected) return;
-    const categoryIds = Array.from(selected.options).map(o => String(o.value));
     const allVariants = window.ALL_VARIANTS_DATA || {};
     const checkboxContainer = document.getElementById("variant-checkboxes");
-
-    if (!categoryIds.length) {
-      checkboxContainer.innerHTML = '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>';
-      const preview = document.getElementById("sku-preview-section");
-      if (preview) preview.style.display = "none";
-      return;
-    }
 
     const seen = new Set();
     const variants = [];
@@ -399,7 +389,8 @@
     (allVariants['null'] || []).forEach(v => {
       if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
     });
-    categoryIds.forEach(catId => {
+    Object.keys(allVariants).forEach((catId) => {
+      if (catId === 'null') return;
       (allVariants[catId] || []).forEach(v => {
         if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
       });
@@ -411,7 +402,7 @@
     );
 
     if (!variants.length) {
-      checkboxContainer.innerHTML = '<p style="color:#999; font-size:13px;">No variants found for selected category.</p>';
+      checkboxContainer.innerHTML = '<p style="color:#999; font-size:13px;">No variants found.</p>';
       return;
     }
 
