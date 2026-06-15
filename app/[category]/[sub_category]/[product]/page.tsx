@@ -2,6 +2,19 @@ import { API_BASE_URL } from "@/config/env";
 import { ProductDetailResponse } from "@/types/product";
 import ProductDetailPage from "@/components/ProductDetail/ProductDetailPage";
 
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/v1/product-slugs/`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const slugs: string[] = await res.json();
+    return slugs.map(slug => ({ category: '_', sub_category: '_', product: slug }));
+  } catch {
+    return [];
+  }
+}
+
+export const revalidate = 3600;
+
 async function fetchProductDetail(slug: string): Promise<ProductDetailResponse> {
   const res = await fetch(`${API_BASE_URL}/v1/product_detail?slug=${slug}`, {
     next: { revalidate: 3600 },

@@ -7,7 +7,7 @@ from users.views import CustomerViews,LoginCustomer,OTPView,VerifyOTP,ForgotPass
 from country.views import StateViewset,CountryViewset
 
 from category.views import CategoryViewset, GetCategoryChildrenWithProducts
-from product.views import ProductViewset,GetProductDetialData
+from product.views import ProductViewset,GetProductDetialData,GetAllProductSlugs
 # GetProductByCategoryView, GetProductBySubCategoryView
 from cart.views import CartViewset,ShippingRateView,TrackShipmentView,CalculateTaxView
 from shipping.views import AddressViewset
@@ -74,6 +74,7 @@ urlpatterns +=[
     # path("get-products-by-category",GetProductByCategoryView,name="get-products-by-category"),
     # path("get-products-by-sub-category",GetProductBySubCategoryView,name="get-products-by-sub-category"),
     path("product_detail",GetProductDetialData,name="product_detail"),
+    path("product-slugs/", GetAllProductSlugs, name="product_slugs"),
     path("category-children-products", GetCategoryChildrenWithProducts, name="category_children_products"),    
 ]
 

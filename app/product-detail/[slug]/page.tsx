@@ -3,6 +3,18 @@ import {ProductDetailResponse} from '@/types/product';
 import ProductDetailPage from '@/components/ProductDetail/ProductDetailPage'
 import { redirect } from "next/navigation";
 
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/v1/product-slugs/`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const slugs: string[] = await res.json();
+    return slugs.map(slug => ({ slug }));
+  } catch {
+    return [];
+  }
+}
+
+export const revalidate = 3600;
 
 async function FetchProductDetail(slug:string): Promise<ProductDetailResponse> {
   const res = await fetch(`${API_BASE_URL}/v1/product_detail?slug=${slug}`, {

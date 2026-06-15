@@ -636,6 +636,13 @@ class ProductViewset(viewsets.ModelViewSet):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def GetAllProductSlugs(request):
+    slugs = list(Product.objects.filter(is_active=True).values_list('slug', flat=True))
+    return Response(slugs)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def GetProductDetialData(request):
 
     product_slug = request.query_params.get('slug')
