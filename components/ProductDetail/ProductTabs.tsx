@@ -1,6 +1,6 @@
 "use client"
 import { useState,useMemo } from "react"
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import ProductCarousel from "./ProductCarousel";
 import ProductFaqs from "./productFaqs";
 import ProductDocuments from "./ProductDocumets";

@@ -4,7 +4,7 @@ from rest_framework import status, permissions
 from .models import Product, ProductDocument, ProductFaQ, ProductAssayDetail, ProductRelatedInfo, AssayPanelTargetDocument
 from .serializers import ProductByCategorySerializer, ProductDetailSerializer, AssayProductSerializer, AssayPanelTargetDocumentSerializer
 from rest_framework import viewsets
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view, action, permission_classes
 from django.core.paginator import Paginator
 from rest_framework.permissions import AllowAny
 from category.models import Category
@@ -635,6 +635,7 @@ class ProductViewset(viewsets.ModelViewSet):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def GetProductDetialData(request):
 
     product_slug = request.query_params.get('slug')

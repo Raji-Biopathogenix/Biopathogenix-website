@@ -151,7 +151,7 @@ sub_category_slug }: ProductCardProps) {
             unoptimized
             loading='lazy'
             priority={false}
-            className="absolute inset-0 w-full h-full object-cover 
+            className="absolute inset-0 w-full h-full object-cover
                               transition-all duration-500 ease-in-out
                               opacity-0 scale-105
                               group-hover:opacity-100 group-hover:scale-100"

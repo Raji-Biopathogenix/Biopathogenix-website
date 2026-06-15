@@ -537,6 +537,7 @@
       const autoCode  = combo.map(opt => opt.value).join("-");
       const existing  = existingSkus[optionKey] || serverSkuMap[optionKey] || {};
       return {
+        combination_label: combo.map(opt => opt.value).join(" + "),
         sku_code  : existing.sku_code  !== undefined ? existing.sku_code  : autoCode,
         option_ids: combo.map(opt => opt.id),
         price     : existing.price     !== undefined ? existing.price     : "0.00",
@@ -554,6 +555,9 @@
     if (previewBody) {
       previewBody.innerHTML = window._currentSkuData.map((sku, idx) => `
         <tr>
+          <td style="padding:8px; border:1px solid #ddd; background:#f9f9f9; font-size:12px; color:#444; white-space:nowrap; font-weight:500;">
+            ${sku.combination_label}
+          </td>
           <td style="padding:8px; border:1px solid #ddd;">
             <input type="text" class="sku-code-input" data-idx="${idx}" value="${sku.sku_code}"
               style="width:200px; padding:5px; border:1px solid #ccc; border-radius:4px; font-weight:500; font-size:13px;">
