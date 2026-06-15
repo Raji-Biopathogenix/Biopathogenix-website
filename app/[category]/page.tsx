@@ -1,20 +1,12 @@
 import { API_BASE_URL } from "@/config/env";
 import { ProductsByCategoryResponse, CategoryResponse,ProductResponse } from "@/types/product";
 import CategoryWiseProducts from "@/components/category/CategoryWiseProducts";
-import { cookies } from "next/headers";
 
 
 async function fetchProductsByCategory(category: string): Promise<CategoryResponse | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
     const res = await fetch(`${API_BASE_URL}/v1/products/get-products-by-category/?category_slug=${category}`, {
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : undefined,
-      cache: "no-store",
+      next: { revalidate: 30 },
     });
     if (!res.ok) return null;
     const payload: ProductsByCategoryResponse = await res.json();

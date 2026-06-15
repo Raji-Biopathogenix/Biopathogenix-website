@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { CartServices } from "@/services/cartServices";
 import { useToast } from "@/context/ToastContext"
 import { useRouter } from 'next/navigation';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { CircleTickIcon } from '../app_icons/app_icons';
 import { CART_ERR_MSG, CART_Quantity_ERR_MSG } from "@/components/utils/AppConstancts";
 import { getProductPricingData } from "@/lib/productPricing";

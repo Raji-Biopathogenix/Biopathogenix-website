@@ -240,6 +240,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "false").lower() == "true"
 
+NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
+REVALIDATE_SECRET = os.getenv("REVALIDATE_SECRET", "biopathogenix-revalidate-secret")
+
 from celery.schedules import crontab
  
 CELERY_BEAT_SCHEDULE = {

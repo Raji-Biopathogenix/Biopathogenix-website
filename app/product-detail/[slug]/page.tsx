@@ -2,30 +2,15 @@ import { API_BASE_URL } from "@/config/env";
 import {ProductDetailResponse} from '@/types/product';
 import ProductDetailPage from '@/components/ProductDetail/ProductDetailPage'
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 
 
 async function FetchProductDetail(slug:string): Promise<ProductDetailResponse> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-
-  console.log("Fetching product details for slug:", token);
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }), // only added if token exists
-  };
-
-  
-
   const res = await fetch(`${API_BASE_URL}/v1/product_detail?slug=${slug}`, {
-    headers,
+    next: { revalidate: 30 },
   });
-
-  if (!res.ok) throw new Error('Failed to fetch menus');
-  return  res.json();
+  if (!res.ok) throw new Error('Failed to fetch product detail');
+  return res.json();
 }
-
 
 
 export default async function ProductDetail({ params }: { params: Promise<{ slug: string }> }){
@@ -41,11 +26,5 @@ export default async function ProductDetail({ params }: { params: Promise<{ slug
     redirect(`/${canonicalParent}/${canonicalSub}/${canonicalSlug}`);
   }
 
-  console.log("Product details response",response)
-
-    return(<>
-      <ProductDetailPage  prd_details = {productData}/>
-    
-    
-    </>)
+  return <ProductDetailPage prd_details={productData} />;
 }

@@ -63,6 +63,11 @@ class ProductSKUInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj and getattr(obj, 'has_variants', False):
+            return ['sku_code', 'price', 'stock', 'low_stock_threshold', 'weight', 'length', 'width', 'height']
+        return []
+
 
 class ProductDocumentInline(admin.TabularInline):
     model = ProductDocument
@@ -185,6 +190,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
                 <table style="width:100%; border-collapse:collapse; font-size:13px;">
                     <thead>
                         <tr style="background:#f0f0f0;">
+                            <th style="padding:8px; border:1px solid #ddd; text-align:left;">Combination</th>
                             <th style="padding:8px; border:1px solid #ddd; text-align:left;">SKU Code</th>
                             <th style="padding:8px; border:1px solid #ddd; text-align:left;">Price</th>
                             <th style="padding:8px; border:1px solid #ddd; text-align:left;">Stock</th>
@@ -207,9 +213,10 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     # category so JS can filter client-side when user picks a category
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['all_variants_json'] = self._get_all_variants_json()
-        extra_context['variants_json']     = '[]'   # none selected yet
-        extra_context['selected_json']     = '[]'
+        extra_context['all_variants_json']  = self._get_all_variants_json()
+        extra_context['variants_json']      = '[]'
+        extra_context['selected_json']      = '[]'
+        extra_context['existing_skus_json'] = '[]'
         return super().add_view(request, form_url, extra_context)
 
     # 
@@ -311,16 +318,69 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     class Media:
         js = ('admin/js/variant_sku_generator.js',)
 
+    # ── Cache helpers ─────────────────────────────────────────────────────────
+    _ORDER_PARAMS = ['', 'asc', 'desc', 'popularity', 'rating', 'date', 'menu_order']
+
+    def _clear_product_caches(self, obj):
+        """Clear Django cache and trigger Next.js on-demand revalidation."""
+        from django.conf import settings
+        import urllib.request
+
+        cache.delete(f"product_detail:{obj.slug}")
+
+        cat_slugs = set()
+        sub_pairs = []
+        try:
+            for cat in obj.categories.select_related('parent').filter(is_active=True):
+                cat_slugs.add(cat.slug)
+                if cat.parent:
+                    cat_slugs.add(cat.parent.slug)
+                    sub_pairs.append((cat.parent.slug, cat.slug))
+                else:
+                    sub_pairs.append((cat.slug, cat.slug))
+        except Exception:
+            pass
+
+        for slug in cat_slugs:
+            cache.delete(f"category_products:{slug}")
+
+        keys_to_delete = []
+        for parent_slug, sub_slug in sub_pairs:
+            for order in self._ORDER_PARAMS:
+                for page in range(1, 16):
+                    keys_to_delete.append(
+                        f"subcategory_products:{parent_slug}:{sub_slug}:{order or 'asc'}:{page}"
+                    )
+        if keys_to_delete:
+            cache.delete_many(keys_to_delete)
+
+        # Ping Next.js to bust its fetch cache immediately
+        try:
+            nextjs_url = getattr(settings, 'NEXTJS_URL', 'http://localhost:3000')
+            secret     = getattr(settings, 'REVALIDATE_SECRET', '')
+            first_pair = sub_pairs[0] if sub_pairs else (None, None)
+            parent_slug, sub_slug = first_pair
+            params = f"secret={secret}&slug={obj.slug}"
+            if parent_slug:
+                params += f"&category={parent_slug}"
+            if sub_slug:
+                params += f"&sub_category={sub_slug}"
+            url = f"{nextjs_url}/api/revalidate?{params}"
+            req = urllib.request.Request(url, method='POST')
+            urllib.request.urlopen(req, timeout=3)
+        except Exception:
+            pass  # Never break admin save if Next.js is unreachable
+
+    # ── Admin overrides ────────────────────────────────────────────────────────
     def save_model(self, request, obj, form, change):
         if not change:
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
-        cache.delete(f"product_detail:{obj.slug}")
-        #  wipe all variant data for a product 
+        self._clear_product_caches(obj)
 
     def delete_model(self, request, obj):
-        cache.delete(f"product_detail:{obj.slug}")   
+        self._clear_product_caches(obj)
         super().delete_model(request, obj)
     
     def _delete_all_variant_data(self, obj):
@@ -354,7 +414,10 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
         super().save_related(request, form, formsets, change)
         obj = form.instance
 
-        # Category changed → delete everything and stop 
+        # Clear all caches after inlines (SKUs, images, etc.) are saved
+        self._clear_product_caches(obj)
+
+        # Category changed → delete everything and stop
         # JS resets the variant UI on category change and continute to create variants
         # Category changed → smart delete by removed categories 
         new_category_ids = set(obj.categories.values_list('id', flat=True))
@@ -481,6 +544,8 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
             key = frozenset(opt.variant_option_id for opt in existing_sku.sku_options.all())
             existing_sku_by_options[key] = existing_sku
 
+        from decimal import Decimal, InvalidOperation
+
         for combo in combinations:
             sku_code   = combo.get('sku_code', '').strip()
             option_ids = combo.get('option_ids', [])
@@ -488,11 +553,40 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
                 continue
             key = frozenset(option_ids)
             if key in existing_sku_by_options:
-                # Already exists → update sku_code if the user changed it
                 existing = existing_sku_by_options[key]
+                update_fields = []
+
                 if existing.sku_code != sku_code:
                     existing.sku_code = sku_code
-                    existing.save(update_fields=['sku_code'])
+                    update_fields.append('sku_code')
+
+                for db_field, combo_key in [
+                    ('price', 'price'), ('weight', 'weight'),
+                    ('length', 'length'), ('width', 'width'), ('height', 'height'),
+                ]:
+                    raw = combo.get(combo_key)
+                    if raw is not None:
+                        try:
+                            new_val = Decimal(str(raw))
+                            if getattr(existing, db_field) != new_val:
+                                setattr(existing, db_field, new_val)
+                                update_fields.append(db_field)
+                        except (InvalidOperation, ValueError):
+                            pass
+
+                for db_field, combo_key in [('stock', 'stock'), ('low_stock_threshold', 'low_stock')]:
+                    raw = combo.get(combo_key)
+                    if raw is not None:
+                        try:
+                            new_val = int(raw)
+                            if getattr(existing, db_field) != new_val:
+                                setattr(existing, db_field, new_val)
+                                update_fields.append(db_field)
+                        except (ValueError, TypeError):
+                            pass
+
+                if update_fields:
+                    existing.save(update_fields=update_fields)
             else:
                 # New combination → create
                 sku = ProductSKU.objects.create(
@@ -546,6 +640,14 @@ class ProductSKUAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('product')
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        try:
+            if obj.product_id and obj.product.slug:
+                cache.delete(f"product_detail:{obj.product.slug}")
+        except Exception:
+            pass
 
 
 @admin.register(ProductDocument)

@@ -117,6 +117,7 @@ export default function ProductImages({product_images}:{product_images:ProductIm
                     width={80}
                     height={80}
                     unoptimized
+                    loading="lazy"
                     className="object-contain"
                     />
                 </button>

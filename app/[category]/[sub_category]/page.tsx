@@ -3,19 +3,11 @@ import { Products, MultiLevelCatgoryResponse, ProductsByCategoryResponse, SubCat
 import ProductGridPage from "@/components/category/product/ProductPage";
 import Pagination from "@/components/pagination/pagination";
 import MultiLevelCategoryView from "@/components/category/MultiLevelCategoryView";
-import { cookies } from "next/headers";
 
 async function fetchProductsDataBySubCategory(category: string, subCategory: string,currentPage:number,orderBy:string): Promise<SubCategoryResponse | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
   const res = await fetch(`${API_BASE_URL}/v1/products/get-products-by-sub-category/?category_slug=${category}&sub_category_slug=${subCategory}&page=${currentPage}&orderBy=${orderBy}`,
   {
-    headers: token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : undefined,
-    cache: "no-store",
+    next: { revalidate: 30 },
   }
   );
   if (!res.ok) return null;

@@ -156,6 +156,28 @@ class ProductImage(models.Model):
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def _compress_image(self):
+        import io, os
+        from PIL import Image as PilImage
+        from django.core.files.base import ContentFile
+        try:
+            img = PilImage.open(self.image)
+            if img.mode not in ('RGB', 'L'):
+                bg = PilImage.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'RGBA':
+                    bg.paste(img, mask=img.split()[3])
+                else:
+                    bg.paste(img.convert('RGB'))
+                img = bg
+            img.thumbnail((1200, 1200), PilImage.LANCZOS)
+            buf = io.BytesIO()
+            img.save(buf, format='JPEG', quality=85, optimize=True)
+            buf.seek(0)
+            name = os.path.splitext(os.path.basename(self.image.name))[0] + '.jpg'
+            self.image = ContentFile(buf.read(), name=name)
+        except Exception:
+            pass
+
     def save(self, *args, **kwargs):
         if self.is_primary:
             ProductImage.objects.filter(
@@ -167,7 +189,10 @@ class ProductImage(models.Model):
             is_primary=True
         ).exclude(pk=self.pk).exists():
             self.is_primary = True
-        
+
+        if self.image and not self.image._committed:
+            self._compress_image()
+
         super().save(*args, **kwargs)
 
     class Meta:

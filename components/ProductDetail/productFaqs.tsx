@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface FAQ {
   id: number
