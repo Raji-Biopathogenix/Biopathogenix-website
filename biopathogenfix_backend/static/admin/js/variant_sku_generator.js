@@ -395,6 +395,10 @@
 
     const seen = new Set();
     const variants = [];
+    // Always include global variants (no category assigned)
+    (allVariants['null'] || []).forEach(v => {
+      if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
+    });
     categoryIds.forEach(catId => {
       (allVariants[catId] || []).forEach(v => {
         if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }

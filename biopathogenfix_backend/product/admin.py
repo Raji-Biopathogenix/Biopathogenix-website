@@ -105,8 +105,47 @@ class ProductRelatedInfoInline(admin.TabularInline):
     fields = ['title', 'content', 'sort_order', 'is_active']
 
 
+class ProductAdminForm(forms.ModelForm):
+    trademark_display  = forms.BooleanField(required=False, label="Show trademark")
+    trademark_position = forms.ChoiceField(
+        choices=[('pre', 'Pre (before name)'), ('post', 'Post (after name)')],
+        label="Position",
+    )
+    trademark_text     = forms.CharField(max_length=50, required=False, label="Text (e.g. BPX)")
+    trademark_symbol   = forms.ChoiceField(
+        choices=[('TM', 'TM'), ('R', '®'), ('SM', '℠')],
+        label="Symbol",
+    )
+
+    class Meta:
+        model  = Product
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        tm = {}
+        if self.instance and self.instance.pk:
+            tm = self.instance.trademark or {}
+        self.fields['trademark_display'].initial  = tm.get('display', False)
+        self.fields['trademark_position'].initial = tm.get('postion', 'post')
+        self.fields['trademark_text'].initial     = tm.get('text', 'BPX')
+        self.fields['trademark_symbol'].initial   = tm.get('trademark', 'TM')
+        if 'trademark' in self.fields:
+            self.fields['trademark'].widget = forms.HiddenInput()
+
+    def save(self, commit=True):
+        self.instance.trademark = {
+            'display':   self.cleaned_data.get('trademark_display', False),
+            'postion':   self.cleaned_data.get('trademark_position', 'post'),
+            'text':      self.cleaned_data.get('trademark_text', 'BPX'),
+            'trademark': self.cleaned_data.get('trademark_symbol', 'TM'),
+        }
+        return super().save(commit=commit)
+
+
 @admin.register(Product)
 class ProductAdmin(CommentMixin,admin.ModelAdmin):
+    form = ProductAdminForm
 
     list_display        = ['name', 'sku', 'get_categories', 'price', 'stock_quantity', 'is_active','is_customizable', 'is_featured', 'created_at']
     list_filter         = ['is_active', 'is_featured', 'categories', 'created_at']
@@ -125,7 +164,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Edit page — price/stock hidden (managed via SKUs)
     fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku','trademark')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('compare_price', 'cost_price')}),
@@ -145,7 +184,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
 
     # Create page — price/stock visible
     add_fieldsets = (
-        ('Basic Info', {'fields': ('name', 'slug', 'sku','trademark')}),
+        ('Basic Info', {'fields': ('name', 'slug', 'sku', 'trademark', 'trademark_display', 'trademark_position', 'trademark_text', 'trademark_symbol')}),
         ('Categories', {'fields': ('categories',)}),
         ('Description', {'fields': ('short_description', 'description')}),
         ('Pricing', {'fields': ('price', 'compare_price', 'cost_price')}),
