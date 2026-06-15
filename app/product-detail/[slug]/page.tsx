@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 async function FetchProductDetail(slug:string): Promise<ProductDetailResponse> {
   const res = await fetch(`${API_BASE_URL}/v1/product_detail?slug=${slug}`, {
-    next: { revalidate: 30 },
+    next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error('Failed to fetch product detail');
   return res.json();
