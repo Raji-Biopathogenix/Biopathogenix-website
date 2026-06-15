@@ -309,9 +309,10 @@
 
     const variantsData    = window.VARIANTS_DATA || [];
     const selectedOptions = new Set(window.SELECTED_OPTIONS || []);
+    const variantsToRender = Array.isArray(variantsData) ? variantsData : flattenVariants(window.ALL_VARIANTS_DATA || {});
 
-    if (variantsData.length) {
-      renderVariantCheckboxes(variantsData, selectedOptions);
+    if (variantsToRender.length) {
+      renderVariantCheckboxes(variantsToRender, selectedOptions);
       generateSKUPreview();
     }
 
@@ -380,21 +381,8 @@
   }
 
   function onCategoryChange() {
-    const allVariants = window.ALL_VARIANTS_DATA || {};
     const checkboxContainer = document.getElementById("variant-checkboxes");
-
-    const seen = new Set();
-    const variants = [];
-    // Always include global variants (no category assigned)
-    (allVariants['null'] || []).forEach(v => {
-      if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
-    });
-    Object.keys(allVariants).forEach((catId) => {
-      if (catId === 'null') return;
-      (allVariants[catId] || []).forEach(v => {
-        if (!seen.has(v.id)) { seen.add(v.id); variants.push(v); }
-      });
-    });
+    const variants = flattenVariants(window.ALL_VARIANTS_DATA || {});
 
     const currentlyChecked = new Set(
       Array.from(document.querySelectorAll(".variant-option-cb:checked"))
@@ -408,6 +396,30 @@
 
     renderVariantCheckboxes(variants, currentlyChecked);
     generateSKUPreview();
+  }
+
+  function flattenVariants(allVariants) {
+    const seen = new Set();
+    const variants = [];
+
+    (allVariants["null"] || []).forEach((variant) => {
+      if (!seen.has(variant.id)) {
+        seen.add(variant.id);
+        variants.push(variant);
+      }
+    });
+
+    Object.keys(allVariants).forEach((catId) => {
+      if (catId === "null") return;
+      (allVariants[catId] || []).forEach((variant) => {
+        if (!seen.has(variant.id)) {
+          seen.add(variant.id);
+          variants.push(variant);
+        }
+      });
+    });
+
+    return variants;
   }
 
   function renderVariantCheckboxes(variantsData, selectedOptions) {
