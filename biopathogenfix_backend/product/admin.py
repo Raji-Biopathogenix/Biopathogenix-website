@@ -15,6 +15,7 @@ from django.contrib import admin
 from .models import Product, ProductImage, ProductDocument, ProductFaQ, Pathogen, ProductPathogen, ProductAssayDetail, ProductRelatedInfo, AssayPanelTargetDocument
 from prd_variant.models import ProductSKU,ProductVariantOption,ProductSKUOption
 from variant.models import Variant,VariantOption
+from category.models import Category
 
 import json
 from django.contrib import admin
@@ -422,8 +423,6 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
         return json.dumps(variants_data)
 
     def _get_category_descendants_json(self):
-        from category.models import Category
-
         categories = list(Category.objects.filter(is_active=True).values('id', 'parent_id'))
         children_by_parent = {}
         for row in categories:

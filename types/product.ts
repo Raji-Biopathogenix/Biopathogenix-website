@@ -41,10 +41,18 @@ export type Products = {
 
 
 
+export interface ProductTrademark {
+  display: boolean;
+  postion: 'pre' | 'post';
+  text: string;
+  trademark: 'TM' | 'R' | 'SM';
+}
+
 export interface MultiLevelProduct{
   id: number;
   name: string;
   slug: string;
+  trademark?: ProductTrademark;
 }
 
 export interface MultiLevelCatgoryResponse{

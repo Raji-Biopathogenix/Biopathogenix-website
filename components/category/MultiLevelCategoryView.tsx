@@ -1,6 +1,17 @@
 import { getAssayHrefForCategory } from "@/lib/assays";
-import { MultiLevelCatgoryResponse } from "@/types/product";
+import { MultiLevelCatgoryResponse, MultiLevelProduct } from "@/types/product";
 import Link from "next/link";
+
+const TRADEMARK_SYMBOLS: Record<string, string> = { TM: '™', R: '®', SM: '℠' };
+
+function ProductName({ product }: { product: MultiLevelProduct }) {
+  const tm = product.trademark;
+  if (!tm?.display) return <>{product.name}</>;
+  const symbol = <sup style={{ fontSize: '0.6em', verticalAlign: 'super' }}>{TRADEMARK_SYMBOLS[tm.trademark] ?? tm.trademark}</sup>;
+  return tm.postion === 'pre'
+    ? <>{tm.text}{symbol} {product.name}</>
+    : <>{product.name} {tm.text}{symbol}</>;
+}
 
 export interface MultiLevelCategoryViewProps {
   subLevelCategories: MultiLevelCatgoryResponse[];
@@ -50,7 +61,7 @@ export default function MultiLevelCategoryView({ subLevelCategories }: MultiLeve
                     href={`/product-detail/${product.slug}`}
                     className="rounded-md border border-[#e4edf3] px-4 py-3 text-base font-semibold text-[#236fa6] transition-colors hover:border-[#1582b8] hover:bg-[#f7fbfd]"
                   >
-                    {product.name}
+                    <ProductName product={product} />
                   </Link>
                 ))}
               </div>
