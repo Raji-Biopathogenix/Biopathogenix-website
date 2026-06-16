@@ -409,7 +409,7 @@ class AssayProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'sku', 'short_description',
             'price', 'compare_price', 'is_in_stock',
-            'primary_image', 'assay_detail', 'documents', 'related_information',
+            'primary_image', 'assay_detail', 'documents', 'related_information', 'trademark',
         ]
 
     def get_primary_image(self, obj):
