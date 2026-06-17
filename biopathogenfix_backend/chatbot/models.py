@@ -18,10 +18,20 @@ class KnowledgeBaseEntry(models.Model):
     ]
 
     title = models.CharField(max_length=255)
+    DOC_TYPE_CHOICES = [
+        ("products", "Products"),
+        ("company", "Company"),
+        ("faq", "FAQ"),
+        ("policies", "Policies"),
+        ("service", "Service"),
+        ("other", "Other"),
+    ]
+
     doc_type = models.CharField(
         max_length=100,
         default="other",
-        help_text="Examples: products, company, faq, policies.",
+        choices=DOC_TYPE_CHOICES,
+        help_text="Category of this knowledge base entry.",
     )
     content = models.TextField(help_text="Markdown/plain text content for RAG ingestion.")
     access = models.CharField(max_length=10, choices=ACCESS_CHOICES, default=ACCESS_PUBLIC)
