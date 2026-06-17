@@ -33,6 +33,7 @@ class KnowledgeBaseEntry(models.Model):
         choices=DOC_TYPE_CHOICES,
         help_text="Category of this knowledge base entry.",
     )
+    source_file = models.CharField(max_length=255, blank=True, default="")
     content = models.TextField(help_text="Markdown/plain text content for RAG ingestion.")
     access = models.CharField(max_length=10, choices=ACCESS_CHOICES, default=ACCESS_PUBLIC)
     sort_order = models.PositiveIntegerField(default=0)
