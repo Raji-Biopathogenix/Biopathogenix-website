@@ -20,10 +20,12 @@ class KnowledgeBaseEntry(models.Model):
     title = models.CharField(max_length=255)
     DOC_TYPE_CHOICES = [
         ("products", "Products"),
-        ("company", "Company"),
+        ("company", "About Company"),
         ("faq", "FAQ"),
         ("policies", "Policies"),
-        ("service", "Service"),
+        ("service", "Services"),
+        ("quality_control", "Quality Control"),
+        ("resources", "Resources"),
         ("other", "Other"),
     ]
 
