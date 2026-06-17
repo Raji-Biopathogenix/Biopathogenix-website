@@ -7,7 +7,7 @@ import MultiLevelCategoryView from "@/components/category/MultiLevelCategoryView
 async function fetchProductsDataBySubCategory(category: string, subCategory: string,currentPage:number,orderBy:string): Promise<SubCategoryResponse | null> {
   const res = await fetch(`${API_BASE_URL}/v1/products/get-products-by-sub-category/?category_slug=${category}&sub_category_slug=${subCategory}&page=${currentPage}&orderBy=${orderBy}`,
   {
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   }
   );
   if (!res.ok) return null;

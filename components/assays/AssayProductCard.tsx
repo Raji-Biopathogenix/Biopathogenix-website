@@ -6,8 +6,19 @@ import {
   getProductDetailHref,
   getProductImageSrc,
   type AssayProduct,
+  type ProductTrademark,
 } from "@/lib/assays";
 import AssayProductInfoDisclosure from "./AssayProductInfoDisclosure";
+
+const TM_SYMBOLS: Record<string, string> = { TM: '™', R: '®', SM: '℠' };
+
+function ProductName({ name, trademark }: { name: string; trademark?: ProductTrademark }) {
+  if (!trademark?.display) return <>{name}</>;
+  const symbol = <sup style={{ fontSize: '0.6em' }}>{TM_SYMBOLS[trademark.trademark] ?? trademark.trademark}</sup>;
+  return trademark.postion === 'pre'
+    ? <>{trademark.text}{symbol} {name}</>
+    : <>{name} {trademark.text}{symbol}</>;
+}
 
 interface Props {
   product: AssayProduct;
@@ -44,7 +55,9 @@ export default function AssayProductCard({ product }: Props) {
             <div className="flex flex-col justify-center">
               <Link href={productHref}>
                 <h3 className="text-2xl font-extrabold leading-tight text-[#1a1f26] transition-colors hover:text-[#1582b8]">
-                  {detail?.panel_name || product.name}
+                  {detail?.panel_name
+                    ? <ProductName name={detail.panel_name} trademark={product.trademark} />
+                    : <ProductName name={product.name} trademark={product.trademark} />}
                 </h3>
               </Link>
               <div className="mt-3 space-y-1">

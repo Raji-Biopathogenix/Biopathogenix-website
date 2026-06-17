@@ -420,7 +420,7 @@ class ProductViewset(viewsets.ModelViewSet):
                 children = list(subCatExist.children.filter(is_active=True).order_by("sort_order", "name"))
                 result = []
                 for child in children:
-                    products = list(Product.objects.filter(categories__id=child.id, is_active=True).distinct().order_by("name").values("id", "name", "slug"))
+                    products = list(Product.objects.filter(categories__id=child.id, is_active=True).distinct().order_by("name").values("id", "name", "slug", "trademark"))
                     result.append(
                         {
                             "id": child.id,
@@ -540,7 +540,7 @@ class ProductViewset(viewsets.ModelViewSet):
                 children = list(categoryExist.children.filter(is_active=True).order_by("sort_order", "name"))
                 result = []
                 for child in children:
-                    products = list(Product.objects.filter(categories__id=child.id, is_active=True).distinct().order_by("name").values("id", "name", "slug"))
+                    products = list(Product.objects.filter(categories__id=child.id, is_active=True).distinct().order_by("name").values("id", "name", "slug", "trademark"))
                     result.append(
                         {
                             "id": child.id,

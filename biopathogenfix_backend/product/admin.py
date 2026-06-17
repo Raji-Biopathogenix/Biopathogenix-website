@@ -15,6 +15,7 @@ from django.contrib import admin
 from .models import Product, ProductImage, ProductDocument, ProductFaQ, Pathogen, ProductPathogen, ProductAssayDetail, ProductRelatedInfo, AssayPanelTargetDocument
 from prd_variant.models import ProductSKU,ProductVariantOption,ProductSKUOption
 from variant.models import Variant,VariantOption
+from category.models import Category
 
 import json
 from django.contrib import admin
@@ -250,6 +251,14 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     variant_selector.short_description = 'Variant Options'
 
     def _render_variant_groups_html(self, selected_ids, category_ids=None):
+        def _expand_category_ids(ids):
+            expanded = set(ids or [])
+            if expanded:
+                expanded.update(
+                    Category.objects.filter(parent_id__in=expanded).values_list('id', flat=True)
+                )
+            return list(expanded)
+
         option_rows = (
             VariantOption.objects.select_related('variant')
             .filter(is_active=True, variant__is_active=True)
@@ -257,6 +266,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
         )
         category_ids = list(category_ids or [])
         if category_ids:
+            category_ids = _expand_category_ids(category_ids)
             option_rows = option_rows.filter(variant__category_id__in=category_ids)
         else:
             return '<p style="color:#999; font-size:13px;">Please select a category above to load variants.</p>'
@@ -326,6 +336,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['all_variants_json']  = self._get_all_variants_json()
         extra_context['variants_json']      = self._get_all_variants_list_json()
+        extra_context['category_descendants_json'] = self._get_category_descendants_json()
         extra_context['selected_json']      = '[]'
         extra_context['existing_skus_json'] = '[]'
         return super().add_view(request, form_url, extra_context)
@@ -335,6 +346,7 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['all_variants_json'] = self._get_all_variants_json()
+        extra_context['category_descendants_json'] = self._get_category_descendants_json()
 
         # Get product's current categories
         category_ids = list(
@@ -409,6 +421,27 @@ class ProductAdmin(CommentMixin,admin.ModelAdmin):
                 })
             variants_data[-1]['options'].append({'id': opt.id, 'value': opt.value})
         return json.dumps(variants_data)
+
+    def _get_category_descendants_json(self):
+        categories = list(Category.objects.filter(is_active=True).values('id', 'parent_id'))
+        children_by_parent = {}
+        for row in categories:
+            children_by_parent.setdefault(row['parent_id'], []).append(row['id'])
+
+        def collect_descendants(category_id):
+            descendants = []
+            stack = list(children_by_parent.get(category_id, []))
+            while stack:
+                child_id = stack.pop()
+                descendants.append(child_id)
+                stack.extend(children_by_parent.get(child_id, []))
+            return descendants
+
+        descendant_map = {
+            str(row['id']): collect_descendants(row['id'])
+            for row in categories
+        }
+        return json.dumps(descendant_map)
 
     # Variants filtered by given category ids (for change_view preload)
     def _get_variants_json_by_categories(self, category_ids):

@@ -49,7 +49,9 @@ export default function ProductTabs({ prdData }: { prdData: any }) {
       </div>
 
       <div className="py-6 px-4">
-        {activeTab === "overview" &&  <div dangerouslySetInnerHTML={{ __html: cleanHtml }}/> }
+        {activeTab === "overview" && (
+          <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
+        )}
         {activeTab === "faq"      &&    <ProductFaqs faqs={prdData?.prd_faqs} />   }
         {activeTab === "recommendations" && <ProductCarousel products={prdData?.recommended_products} is_detailpage={true}/> }
         {activeTab === "documents"       && <ProductDocuments   documents = {prdData?.documents}/>}

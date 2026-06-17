@@ -310,15 +310,22 @@
     const variantsData = readJsonData("variants-data-json", []);
     const selectedOptions = new Set(readJsonData("selected-options-json", []));
     const allVariantsData = readJsonData("all-variants-json", {});
-    const selectedCategoryIds = getSelectedCategoryIds();
-    const variantsToRender = filterVariantsByCategories(flattenVariants(allVariantsData), selectedCategoryIds);
+    const refreshVariants = () => {
+      const selectedCategoryIds = getSelectedCategoryIds();
+      const variantsToRender = filterVariantsByCategories(
+        flattenVariants(allVariantsData),
+        selectedCategoryIds
+      );
 
-    if (variantsToRender.length) {
-      renderVariantCheckboxes(variantsToRender, selectedOptions);
-      generateSKUPreview();
-    } else {
-      renderEmptyVariantState(selectedCategoryIds.length);
-    }
+      if (variantsToRender.length) {
+        renderVariantCheckboxes(variantsToRender, selectedOptions);
+        generateSKUPreview();
+      } else {
+        renderEmptyVariantState(selectedCategoryIds.length);
+      }
+    };
+
+    refreshVariants();
 
     const form = document.querySelector("form");
     if (form) {
@@ -332,7 +339,7 @@
       });
     }
 
-    watchCategoryChange();
+    watchCategoryChange(refreshVariants);
   }
 
   document.addEventListener("DOMContentLoaded", init);
@@ -373,18 +380,30 @@
     return result;
   }
 
-  function watchCategoryChange() {
+  function watchCategoryChange(onChange) {
     const interval = setInterval(function () {
       const sources = getCategorySelectElements();
       if (!sources.length) return;
       clearInterval(interval);
       sources.forEach((select) => {
-        select.addEventListener("change", onCategoryChange);
+        select.addEventListener("change", function () {
+          onCategoryChange();
+          onChange();
+        });
       });
       const observer = new MutationObserver(onCategoryChange);
       sources.forEach((select) => {
         observer.observe(select, { childList: true, subtree: true });
       });
+
+      let lastSignature = "";
+      setInterval(function () {
+        const signature = getSelectedCategoryIds().join(",");
+        if (signature !== lastSignature) {
+          lastSignature = signature;
+          onChange();
+        }
+      }, 250);
     }, 100);
   }
 
@@ -410,11 +429,19 @@
   function getSelectedCategoryIds() {
     const ids = new Set();
 
+    // filter_horizontal right panel: ALL options present = selected
+    const toPanel = document.getElementById("id_categories_to");
+    if (toPanel) {
+      Array.from(toPanel.options).forEach((option) => {
+        if (option.value !== "") ids.add(String(option.value));
+      });
+      return Array.from(ids);
+    }
+
+    // fallback for plain <select multiple>
     getCategorySelectElements().forEach((select) => {
       Array.from(select.options).forEach((option) => {
-        if (option.selected && option.value !== "") {
-          ids.add(String(option.value));
-        }
+        if (option.selected && option.value !== "") ids.add(String(option.value));
       });
     });
 
@@ -442,6 +469,13 @@
     if (!selectedCategoryIds.length) return [];
 
     const categorySet = new Set(selectedCategoryIds.map(String));
+    const descendantMap = readJsonData("category-descendants-json", {});
+    selectedCategoryIds.forEach((categoryId) => {
+      (descendantMap[String(categoryId)] || []).forEach((childId) => {
+        categorySet.add(String(childId));
+      });
+    });
+
     return variants.filter(variant => {
       const categoryId = variant.category_id === null || variant.category_id === undefined
         ? "null"

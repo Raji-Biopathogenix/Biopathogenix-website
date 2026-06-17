@@ -65,6 +65,13 @@ export interface AssayRelatedInformation {
   sort_order: number;
 }
 
+export interface ProductTrademark {
+  display: boolean;
+  postion: 'pre' | 'post';
+  text: string;
+  trademark: 'TM' | 'R' | 'SM';
+}
+
 export interface AssayProduct {
   id: number;
   name: string;
@@ -78,6 +85,7 @@ export interface AssayProduct {
   assay_detail: AssayDetail | null;
   documents: AssayDocument[];
   related_information: AssayRelatedInformation[];
+  trademark?: ProductTrademark;
 }
 
 export interface AssayListResponse {
@@ -452,8 +460,8 @@ export function getAssayHrefForCategory(value?: string | null) {
 
   if (normalized.includes("respiratory")) return "/assays/respiratory";
   if (normalized.includes("urinary") || normalized.includes("uti")) return "/assays/urinary";
-  if (normalized.includes("urogenital") || normalized.includes("leukorrhea") || normalized.includes("sti")) return "/assays/urogenital";
   if (normalized.includes("gastro") || normalized.includes("gi")) return "/assays/gastrointestinal";
+  if (normalized.includes("urogenital") || normalized.includes("leukorrhea") || normalized.includes("sti")) return "/assays/urogenital";
   if (normalized.includes("wound") || normalized.includes("nail")) return "/assays/wound";
   if (normalized.includes("other")) return "/assays/other";
 

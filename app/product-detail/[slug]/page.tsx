@@ -14,11 +14,11 @@ export async function generateStaticParams() {
   }
 }
 
-export const revalidate = 3600;
+export const revalidate = 0;
 
 async function FetchProductDetail(slug:string): Promise<ProductDetailResponse> {
   const res = await fetch(`${API_BASE_URL}/v1/product_detail?slug=${slug}`, {
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error('Failed to fetch product detail');
   return res.json();
