@@ -29,7 +29,7 @@ export default function WhyScientistsChoose({result}:PrimaryConversionPathwayspr
 
       
           {description ? (
-            <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description) }} />
+            <div className="cms-content"><span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description) }} /></div>
           ) : (
             <>
               <p className="text-[0.95rem] text-[#4a5f7a] leading-relaxed">

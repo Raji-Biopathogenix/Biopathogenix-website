@@ -46,6 +46,12 @@ body {
   }
 }
 
+/* Force CMS-rendered HTML to use dark text on all browsers including iOS Safari */
+.cms-content * {
+  color: #0d1f3c !important;
+  -webkit-text-fill-color: #0d1f3c !important;
+}
+
 .spec-section p,
 .spec-section a {
   color: #143a67 !important;
