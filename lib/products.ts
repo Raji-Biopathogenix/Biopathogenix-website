@@ -59,7 +59,10 @@ export async function fetchProducts(params: {
             Authorization: `Bearer ${params.accessToken}`,
           }
         : undefined,
-      cache: "no-store",
+      // Cache public (non-auth) product lists for 60s; bypass cache for logged-in users
+      ...(params.accessToken
+        ? { cache: "no-store" as const }
+        : { next: { revalidate: 60 } }),
     });
 
     if (!response.ok) {

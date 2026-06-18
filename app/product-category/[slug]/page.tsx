@@ -4,10 +4,16 @@ import { cookies } from "next/headers";
 
 import ShopProductGrid from "@/components/shop/ShopProductGrid";
 import { fetchProducts } from "@/lib/products";
-import { CATEGORY_FALLBACK, fetchCategories, getCategoryImage, sortCategories } from "@/lib/categories";
+import { CATEGORY_FALLBACK, CATEGORY_ORDER, fetchCategories, getCategoryImage, sortCategories } from "@/lib/categories";
 import { getEffectiveProductPrice } from "@/lib/productPricing";
 
 const FALLBACK_IMAGE = "/images/shop/96-Well-PCR-Plate-1-scaled.jpg";
+
+export async function generateStaticParams() {
+  return CATEGORY_ORDER.map((slug) => ({ slug }));
+}
+
+export const revalidate = 60;
 
 export default async function CategoryPage({
   params,
@@ -18,17 +24,22 @@ export default async function CategoryPage({
   if (slug === "quality-control") {
     redirect("/quality-control");
   }
-  const categories = await fetchCategories();
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+
+  // Fetch categories and products in parallel instead of sequentially
+  const [categories, { items, total }] = await Promise.all([
+    fetchCategories(),
+    fetchProducts({ categorySlug: slug, accessToken: token }),
+  ]);
+
   const sortedCategories = sortCategories(categories.length ? categories : CATEGORY_FALLBACK);
   const activeCategory = sortedCategories.find((category) => category.slug === slug);
 
   if (!activeCategory) {
     notFound();
   }
-
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-  const { items, total } = await fetchProducts({ categorySlug: slug, accessToken: token });
   const products = items.map((item) => {
     const price = getEffectiveProductPrice(item);
     const comparePrice = item.compare_price ? Number(item.compare_price) : 0;
@@ -46,8 +57,6 @@ export default async function CategoryPage({
     };
   });
 
-  console.log("products",products)
-
   return (
     <main className="min-h-screen bg-white">
       <div className="bg-[#f8fafd] py-20 border-b border-gray-100">
@@ -60,7 +69,7 @@ export default async function CategoryPage({
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#0b2e59]/60">Category</p>
               <h1 className="text-[44px] font-bold text-[#0b2e59]">
-                {activeCategory.name + "----"}
+                {activeCategory.name}
               </h1>
             </div>
           </div>
