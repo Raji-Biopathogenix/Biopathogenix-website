@@ -45,8 +45,9 @@ class LandingPageImageAdmin(admin.ModelAdmin):
 
 @admin.register(LandingPageContext)
 class LandingPageContextAdmin(admin.ModelAdmin):
-    list_display = ["title", "landing_page_type", "btn_text", "btn_url"]
-    list_filter = ["landing_page_type"]
+    list_display = ["title", "landing_page_type", "btn_text", "btn_url", "is_active"]
+    list_editable = ["is_active"]
+    list_filter = ["landing_page_type", "is_active"]
     search_fields = ["title", "btn_text", "btn_url"]
     fieldsets = (
         ("Content", {
@@ -58,6 +59,9 @@ class LandingPageContextAdmin(admin.ModelAdmin):
         }),
         ("Schedule", {
             "fields": ("start_date", "end_date", "discount_value"),
+        }),
+        ("Visibility", {
+            "fields": ("is_active",),
         }),
     )
 
