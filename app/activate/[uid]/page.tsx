@@ -44,13 +44,21 @@ export default function ActivateUser() {
   useEffect(() => {
     let uuid = pathname.split("/").pop();
 
-    console.log("uuid===>",user,"<==>",uuid)
-    
-    if(uuid && user) {
-      ActivateUser(uuid)
+    if (!uuid) return;
+
+    if (!user) {
+      // Store the activation UUID so we can complete it after login
+      sessionStorage.setItem("pending_activation_uuid", uuid);
+      router.push("/my-account");
+      return;
     }
 
-  }, [user,pathname])
+    // Check if there's a pending activation from before login
+    const pendingUuid = sessionStorage.getItem("pending_activation_uuid") || uuid;
+    sessionStorage.removeItem("pending_activation_uuid");
+    ActivateUser(pendingUuid);
+
+  }, [user, pathname])
 
 
 

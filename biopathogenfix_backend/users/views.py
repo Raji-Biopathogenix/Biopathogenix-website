@@ -170,15 +170,23 @@ def VerificationEmail(request):
             return Response({"status":"success","message":"Your email already Verifed!","result":{"verified":custom.is_staff,"first_name":custom.first_name,"last_name":custom.last_name,"status":True}},status=200)
         custom.is_staff = True
         custom.save()
-        send_activation_admin_email_safe(custom.email,
-            {
-                "subject": "Activation Email From BioPathogenix",
-                "first_name": custom.first_name,
-                "last_name": custom.last_name,
-                "email": custom.email,
-                "activation_link":f"{configSettings.FRONTEND_URL}/activate/{custom.active_uuid}",
-                "msg": "Kindly Verify Your Email!"
-            })
+        superadmin_emails = list(
+            CustomUser.objects.filter(
+                user_roles__role__name="superadmin", is_active=True
+            ).values_list("email", flat=True)
+        )
+        if not superadmin_emails:
+            superadmin_emails = [configSettings.ADMIN_ALERT_EMAIL]
+        for admin_email in superadmin_emails:
+            send_activation_admin_email_safe(admin_email,
+                {
+                    "subject": "New User Registration - Action Required",
+                    "first_name": custom.first_name,
+                    "last_name": custom.last_name,
+                    "email": custom.email,
+                    "activation_link": f"{configSettings.FRONTEND_URL}/activate/{custom.active_uuid}",
+                    "msg": "A new user has verified their email and is awaiting activation."
+                })
         
         # configSettings.ADMIN_ALERT_EMAIL
         send_activation_user_email_safe(custom.email,
@@ -204,7 +212,8 @@ def ActivationEmail(request):
             return Response({"status":"error", "message": "Data Not Found"}, status=400)
 
         admin = get_object_or_404(CustomUser,id=request.user.id)
-        if not admin.is_superuser:
+        is_superadmin = admin.is_superuser or admin.user_roles.filter(role__name="superadmin").exists()
+        if not is_superadmin:
             return Response({"status":"error", "message": "Only superadmin can activate users"}, status=403)
 
         user_uid = request.query_params.get('uid')
