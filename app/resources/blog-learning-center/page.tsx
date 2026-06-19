@@ -2,6 +2,8 @@ import CatalogDownload from "@/components/home/CatalogDownload";
 import { getBlogPosts } from "@/lib/learning-center";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 function formatPublishedDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

@@ -18,9 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function generateStaticParams() {
-  return Object.keys(ASSAY_TYPE_CONFIG).map((slug) => ({ assayType: slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function AssayTypePage({ params, searchParams }: Props) {
   const { assayType } = await params;

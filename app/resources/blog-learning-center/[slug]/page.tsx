@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { BlogPost } from "@/lib/learning-center";
 
+export const dynamic = "force-dynamic";
+
 function formatPublishedDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

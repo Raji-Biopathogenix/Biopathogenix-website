@@ -3,16 +3,7 @@ import {ProductDetailResponse} from '@/types/product';
 import ProductDetailPage from '@/components/ProductDetail/ProductDetailPage'
 import { redirect } from "next/navigation";
 
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/v1/product-slugs/`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const products: { slug: string; category: string | null; sub_category: string | null }[] = await res.json();
-    return products.map(p => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
+export const dynamic = "force-dynamic";
 
 export const revalidate = 0;
 

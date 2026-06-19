@@ -9,9 +9,7 @@ import { getEffectiveProductPrice } from "@/lib/productPricing";
 
 const FALLBACK_IMAGE = "/images/shop/96-Well-PCR-Plate-1-scaled.jpg";
 
-export async function generateStaticParams() {
-  return CATEGORY_ORDER.map((slug) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export const revalidate = 60;
 

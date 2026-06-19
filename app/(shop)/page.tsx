@@ -10,6 +10,7 @@ import WhyScientistsChoose from "@/components/home2/Whyscientistschoose";
 import OffersSection from "@/components/home2/OffersSection";
 
 export type LandingPageResult = LandingPageResponse["result"]; 
+export const dynamic = "force-dynamic";
 
 async function fetchLandingPageContext(): Promise<LandingPageResult | null> {
   try {

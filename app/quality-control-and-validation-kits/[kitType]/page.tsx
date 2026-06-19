@@ -24,9 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function generateStaticParams() {
-  return QC_SLUGS.map((slug) => ({ kitType: slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function QCKitTypePage({ params }: Props) {
   const { kitType } = await params;
