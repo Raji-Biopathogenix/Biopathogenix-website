@@ -1,6 +1,8 @@
 import NavigationLandingPage from "@/components/common/NavigationLandingPage";
 import { fetchNavigationMenu, NAVIGATION_FALLBACK } from "@/lib/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function ServicesLandingPage() {
   const navigation = await fetchNavigationMenu();
   const servicesGroup =
