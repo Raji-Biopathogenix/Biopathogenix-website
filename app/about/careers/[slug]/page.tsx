@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import CareerApplyForm from "@/components/careers/CareerApplyForm";
 import { fetchOpenRoleBySlug } from "@/lib/careers";
 
+export const dynamic = "force-dynamic";
+
 function SectionBlock({ title, content }: { title: string; content?: string }) {
   if (!content?.trim()) {
     return null;

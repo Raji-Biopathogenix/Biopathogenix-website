@@ -9,6 +9,8 @@ import {
   sortRolesByOrder,
 } from "@/components/careers/careersUtils";
 
+export const dynamic = "force-dynamic";
+
 const careerImages = {
   centrifugeTeam: "/images/carrer/2.png",
   labTeam: "/images/carrer/Blog-Placeholder-Image-1.jpg",
