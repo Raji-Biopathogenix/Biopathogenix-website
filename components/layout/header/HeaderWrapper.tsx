@@ -3,6 +3,8 @@ import { API_BASE_URL } from "@/config/env";
 
 import {HeaderMenus} from '@/types/header';
 
+const HEADER_FETCH_TIMEOUT_MS = 8000;
+
 const EMPTY_HEADER_MENUS: HeaderMenus = {
   status: "error",
   message: "Menu service unavailable",
@@ -16,9 +18,13 @@ const EMPTY_HEADER_MENUS: HeaderMenus = {
 
 
 async function getHeaderMenus(): Promise<HeaderMenus> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), HEADER_FETCH_TIMEOUT_MS);
+
   try {
     const res = await fetch(`${API_BASE_URL}/v1/headermenu`, {
       next: { revalidate: 3600 },
+      signal: controller.signal,
     });
 
     if (!res.ok) return EMPTY_HEADER_MENUS;
@@ -26,6 +32,8 @@ async function getHeaderMenus(): Promise<HeaderMenus> {
     return res.json();
   } catch {
     return EMPTY_HEADER_MENUS;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
