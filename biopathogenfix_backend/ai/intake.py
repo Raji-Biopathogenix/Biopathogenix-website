@@ -12,37 +12,54 @@ class IntakeFormPayload(TypedDict):
     confirmation: str
 
 
-SUPPORT_INTENT_PATTERN = re.compile(
+SALES_INTENT_PATTERN = re.compile(
     r"(quote|quotes|quotation|bulk(?:\s+price|\s+pricing)?|bulck(?:\s+price|\s+pricing)?|"
-    r"volume\s+pricing|customer\s+support|customer\s+service|support|service|contact\s*form|"
-    r"sales\s+team|assay\s+team|extraction\s+team|talk(?:\s+direct(?:ly)?)?\s+to\s+"
-    r"(?:a\s+)?(?:person|human|agent|representative)|human\s+(?:agent|support)|"
-    r"need\s+assistance|direct\s+person|sales|pricing)",
+    r"volume\s+pricing|sales\s+team|sales|pricing\s+request|get\s+a\s+price|"
+    r"bulk\s+order|price\s+list)",
     re.IGNORECASE,
 )
 
-SALES_INTENT_PATTERN = re.compile(
-    r"(quote|quotes|quotation|bulk(?:\s+price|\s+pricing)?|bulck(?:\s+price|\s+pricing)?|"
-    r"volume\s+pricing|sales\s+team|sales|pricing)",
+VALIDATION_INTENT_PATTERN = re.compile(
+    r"(validation\s+service|biobank\s+validation|kit\s+validation|assay\s+validation|"
+    r"method\s+validation|validate\s+(?:a\s+)?(?:kit|assay|method|product)|"
+    r"validation\s+request|need\s+validation)",
     re.IGNORECASE,
 )
 
 ASSAY_TEAM_INTENT_PATTERN = re.compile(r"(assay\s+team|extraction\s+team)", re.IGNORECASE)
 
+SUPPORT_INTENT_PATTERN = re.compile(
+    r"(customer\s+support|customer\s+service|technical\s+support|contact\s*form|"
+    r"talk(?:\s+direct(?:ly)?)?\s+to\s+(?:a\s+)?(?:person|human|agent|representative)|"
+    r"human\s+(?:agent|support)|need\s+assistance|direct\s+person|support|service|"
+    r"i\s+have\s+an?\s+(?:issue|problem|question)|help\s+me)",
+    re.IGNORECASE,
+)
+
 
 def get_intake_form_intent(text: str) -> IntakeFormPayload | None:
     normalized = text.strip()
-    if not normalized or not SUPPORT_INTENT_PATTERN.search(normalized):
+    if not normalized:
         return None
 
     if SALES_INTENT_PATTERN.search(normalized):
         return {
-            "assayType": "standard",
-            "title": "Sales and Quote Request",
+            "assayType": "sales_quote",
+            "title": "Sales & Quotes Request",
             "subtitle": "Share your details and our sales team will contact you within 24 hours.",
             "confirmation": (
-                "I understand. Please fill out this contact form and our sales team will "
+                "I understand. Please fill out this form and our sales team will "
                 "reach out with pricing details."
+            ),
+        }
+
+    if VALIDATION_INTENT_PATTERN.search(normalized):
+        return {
+            "assayType": "validation_service",
+            "title": "Validation Service Request",
+            "subtitle": "Share your details and our validation team will contact you within 24 hours.",
+            "confirmation": (
+                "Sure. Please fill out this form and our validation team will reach out to assist you."
             ),
         }
 
@@ -57,14 +74,17 @@ def get_intake_form_intent(text: str) -> IntakeFormPayload | None:
             ),
         }
 
-    return {
-        "assayType": "standard",
-        "title": "Customer Support Request",
-        "subtitle": "Share your details and our support team will contact you within 24 hours.",
-        "confirmation": (
-            "Of course. Please fill out this contact form and a team member will reach you directly."
-        ),
-    }
+    if SUPPORT_INTENT_PATTERN.search(normalized):
+        return {
+            "assayType": "customer_support",
+            "title": "Customer Support Request",
+            "subtitle": "Share your details and our support team will contact you within 24 hours.",
+            "confirmation": (
+                "Of course. Please fill out this contact form and a team member will reach you directly."
+            ),
+        }
+
+    return None
 
 
 def build_assay_intake_email_html(
