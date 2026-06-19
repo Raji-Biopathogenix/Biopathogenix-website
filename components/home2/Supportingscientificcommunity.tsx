@@ -31,9 +31,10 @@ export default function SupportingScientificCommunity({result}:SupportCommunityp
             {result?.contexts?.[0]?.title || "Supporting the Scientific Community"}
           </h2>
 
-        {result?.contexts?.[0]?.short_description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.short_description) }} />}
-
-  {result?.contexts?.[0]?.description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.description) }} />}
+        <div className="cms-content">
+          {result?.contexts?.[0]?.short_description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.short_description) }} />}
+          {result?.contexts?.[0]?.description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.description) }} />}
+        </div>
             {/* <svg className="w-5 h-5 flex-shrink-0 text-[#3ab5d0]" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />

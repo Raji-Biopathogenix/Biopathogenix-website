@@ -223,7 +223,7 @@ class BlogPostViewset(viewsets.ReadOnlyModelViewSet):
 def LandingPageView(request):
     try:
         landing_page_contents=LandingPageType.objects.filter(is_active=True).prefetch_related(
-            Prefetch("contexts", queryset=LandingPageContext.objects.all()),
+            Prefetch("contexts", queryset=LandingPageContext.objects.filter(is_active=True)),
             Prefetch("images", queryset=LandingPageImage.objects.filter(is_active=True).order_by("order")),
         ).order_by("order")
         landing_page_serialization= LandingPageTypeSerializer(landing_page_contents,many=True,context={'request': request}).data

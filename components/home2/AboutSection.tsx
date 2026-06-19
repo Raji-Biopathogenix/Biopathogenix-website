@@ -64,11 +64,13 @@ export default function AboutSection({result}:AboutSectionprops) {
            
           </h2>}
 
-          <p className="text-[0.95rem] text-[#4a5f7a] leading-relaxed mb-5">
+          <div className="cms-content text-[0.95rem] leading-relaxed mb-5">
            {result?.contexts?.[0]?.short_description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.short_description) }} />}
-          </p>
+          </div>
 
+          <div className="cms-content">
            {result?.contexts?.[0]?.description && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result?.contexts?.[0]?.description) }} />}
+          </div>
 
           {/* <p className="text-[0.95rem] font-bold text-[#0d1f3c] mb-4">
             Our teams work directly with scientists to develop

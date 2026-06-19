@@ -65,7 +65,8 @@ class LandingPageContext(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     start_date   = models.DateField(null=True,blank=True)
     end_date     = models.DateField(null=True,blank=True)
-    discount_value = models.DecimalField(max_digits=10,default=0.00, decimal_places=2,help_text="10 = '10%'") 
+    discount_value = models.DecimalField(max_digits=10,default=0.00, decimal_places=2,help_text="10 = '10%'")
+    is_active    = models.BooleanField(default=True, db_index=True)
     
 
     class Meta:
