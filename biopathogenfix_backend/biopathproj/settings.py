@@ -34,6 +34,10 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
+def _env_bool(name: str, default: str = "False") -> bool:
+    return os.getenv(name, default).lower() in ("1", "true", "yes", "on")
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -107,27 +111,38 @@ WSGI_APPLICATION = 'biopathproj.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+#
+# Local development should not depend on the remote MySQL instance being
+# reachable. Use SQLite by default and opt into MySQL with environment
+# variables when the remote database is available.
+USE_MYSQL = _env_bool("USE_MYSQL") or os.getenv("DB_ENGINE", "").lower() in (
+    "mysql",
+    "django.db.backends.mysql",
+)
 
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
-    'default': {
-
-        'ENGINE': 'django.db.backends.mysql',
-        'CONN_MAX_AGE': 60,
-        'NAME': 'Biopathogenix',
-        'USER': 'myuser',
-        'PASSWORD': 'MySecurePass123!',
-        'HOST': '40.90.193.137',   # <-- Your VM's IP address
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
+if USE_MYSQL:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "CONN_MAX_AGE": 60,
+            "NAME": os.getenv("DB_NAME", "Biopathogenix"),
+            "USER": os.getenv("DB_USER", "myuser"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "MySecurePass123!"),
+            "HOST": os.getenv("DB_HOST", "40.90.193.137"),
+            "PORT": os.getenv("DB_PORT", "3306"),
+            "OPTIONS": {
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+                "charset": "utf8mb4",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 REST_FRAMEWORK = {
