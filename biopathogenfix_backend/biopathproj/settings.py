@@ -112,23 +112,19 @@ WSGI_APPLICATION = 'biopathproj.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 #
-# Local development should not depend on the remote MySQL instance being
-# reachable. Use SQLite by default and opt into MySQL with environment
-# variables when the remote database is available.
-USE_MYSQL = _env_bool("USE_MYSQL") or os.getenv("DB_ENGINE", "").lower() in (
-    "mysql",
-    "django.db.backends.mysql",
-)
+# Production points at the MySQL instance you provided. Environment variables
+# still win, so the same settings file can be reused for other deployments.
+DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.mysql").lower()
 
-if USE_MYSQL:
+if DB_ENGINE in ("mysql", "django.db.backends.mysql"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
             "CONN_MAX_AGE": 60,
-            "NAME": os.getenv("DB_NAME", "Biopathogenix"),
-            "USER": os.getenv("DB_USER", "myuser"),
-            "PASSWORD": os.getenv("DB_PASSWORD", "MySecurePass123!"),
-            "HOST": os.getenv("DB_HOST", "40.90.193.137"),
+            "NAME": os.getenv("DB_NAME", "biopathogenix"),
+            "USER": os.getenv("DB_USER", "biopath_user"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "Biopath@123"),
+            "HOST": os.getenv("DB_HOST", "192.168.4.63"),
             "PORT": os.getenv("DB_PORT", "3306"),
             "OPTIONS": {
                 "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -358,4 +354,3 @@ REST_FRAMEWORK = {
         'login': '10/min',      # used by custom throttle if you define scope 'login'
     }
 }
-
