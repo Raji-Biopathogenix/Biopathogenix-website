@@ -14,6 +14,11 @@ def repair_customuser_laboratory_fk(apps, schema_editor):
         if customuser_table not in table_names or usertypes_table not in table_names:
             return
 
+        usertypes_columns = {
+            column.name
+            for column in connection.introspection.get_table_description(cursor, usertypes_table)
+        }
+
         if legacy_table in table_names:
             cursor.execute(
                 f"""
@@ -50,13 +55,26 @@ def repair_customuser_laboratory_fk(apps, schema_editor):
                         continue
 
                     name, created_at = legacy_row
-                    cursor.execute(
-                        f"""
-                        INSERT INTO {usertypes_table} (id, name, created_at, is_displayed)
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        [missing_id, name, created_at, True],
-                    )
+                    if "is_displayed" in usertypes_columns:
+                        cursor.execute(
+                            f"""
+                            INSERT INTO {usertypes_table} (id, name, created_at, is_displayed)
+                            VALUES (%s, %s, %s, %s)
+                            """,
+                            [missing_id, name, created_at, True],
+                        )
+                    else:
+                        cursor.execute(
+                            f"""
+                            INSERT INTO {usertypes_table} (id, name, created_at)
+                            VALUES (%s, %s, %s)
+                            """,
+                            [missing_id, name, created_at],
+                        )
+
+        # The constraint repair below is only valid on MySQL.
+        if connection.vendor != "mysql":
+            return
 
         cursor.execute(
             """
