@@ -5,6 +5,8 @@ def sync_orderitem_dimension_columns(apps, schema_editor):
     OrderItem = apps.get_model("order", "OrderItem")
     table_name = OrderItem._meta.db_table
     connection = schema_editor.connection
+    quoted_table_name = schema_editor.quote_name(table_name)
+    vendor = connection.vendor
 
     with connection.cursor() as cursor:
         existing_columns = {
@@ -12,16 +14,25 @@ def sync_orderitem_dimension_columns(apps, schema_editor):
         }
 
     for field_name in ("weight", "length", "width", "height"):
+        quoted_field_name = schema_editor.quote_name(field_name)
+
         if field_name in existing_columns:
-            schema_editor.execute(
-                f"ALTER TABLE `{table_name}` "
-                f"MODIFY COLUMN `{field_name}` DECIMAL(10,2) NOT NULL DEFAULT 0.00"
-            )
-        else:
-            schema_editor.execute(
-                f"ALTER TABLE `{table_name}` "
-                f"ADD COLUMN `{field_name}` DECIMAL(10,2) NOT NULL DEFAULT 0.00"
-            )
+            # SQLite does not support MODIFY COLUMN syntax.
+            if vendor == "sqlite":
+                continue
+
+            if vendor == "mysql":
+                schema_editor.execute(
+                    f"ALTER TABLE {quoted_table_name} "
+                    f"MODIFY COLUMN {quoted_field_name} DECIMAL(10,2) NOT NULL DEFAULT 0.00"
+                )
+            # For other databases, keep existing column as-is.
+            continue
+
+        schema_editor.execute(
+            f"ALTER TABLE {quoted_table_name} "
+            f"ADD COLUMN {quoted_field_name} DECIMAL(10,2) NOT NULL DEFAULT 0.00"
+        )
 
 
 class Migration(migrations.Migration):
